@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Window & Tab Manager</title>
+  <link rel="stylesheet" href="styles/manager.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="title">
+          <img src="assets/icons/icon32.png" alt="Extension Icon" class="title-icon">
+          Window & Tab Manager
+        </h1>
+        <div class="header-actions">
+          <button id="refreshBtn" class="btn btn-secondary" title="Refresh">
+            <span class="icon">🔄</span>
+            Refresh
+          </button>
+          <button id="newWindowBtn" class="btn btn-primary" title="New Window">
+            <span class="icon">➕</span>
+            New Window
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <div id="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading windows and tabs...</p>
+      </div>
+
+      <div id="error" class="error-state hidden">
+        <div class="error-icon">⚠️</div>
+        <h2>Error Loading Windows</h2>
+        <p class="error-message"></p>
+        <button id="retryBtn" class="btn btn-primary">Try Again</button>
+      </div>
+
+      <div id="content" class="content hidden">
+        <div class="stats-bar">
+          <div class="stats">
+            <span id="windowCount" class="stat-item">0 windows</span>
+            <span id="tabCount" class="stat-item">0 tabs</span>
+          </div>
+          <div class="view-options">
+            <button id="viewModeBtn" class="btn btn-secondary btn-small">
+              <span class="icon">⚏</span>
+              Grid View
+            </button>
+          </div>
+        </div>
+
+        <div id="windowsContainer" class="windows-container">
+          <!-- Windows will be populated here -->
+        </div>
+
+        <div id="dropZone" class="drop-zone hidden">
+          <div class="drop-zone-content">
+            <div class="drop-icon">📁</div>
+            <p>Drop tab here to create new window</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Toast notifications -->
+    <div id="toast" class="toast hidden">
+      <div class="toast-content">
+        <span class="toast-icon"></span>
+        <span class="toast-message"></span>
+      </div>
+    </div>
+
+    <!-- Confirmation modal -->
+    <div id="confirmModal" class="modal hidden">
+      <div class="modal-content">
+        <h3 class="modal-title">Confirm Action</h3>
+        <p class="modal-message"></p>
+        <div class="modal-actions">
+          <button id="modalCancel" class="btn btn-secondary">Cancel</button>
+          <button id="modalConfirm" class="btn btn-danger">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="manager.js"></script>
+</body>
+</html>

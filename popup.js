@@ -199,7 +199,6 @@ class PopupManager {
   }
 
   openFullManager() {
-    // TODO: Implement full manager page
     chrome.tabs.create({ url: chrome.runtime.getURL('manager.html') });
     window.close();
   }
