@@ -9,10 +9,6 @@
     "storage"
   ],
   
-  "host_permissions": [
-    "chrome://favicon/*"
-  ],
-  
   "background": {
     "service_worker": "background.js"
   },
