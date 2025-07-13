@@ -1,0 +1,25 @@
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Chrome extension development
+*.crx
+*.pem
+key.pem
+
+# Logs
+*.log
