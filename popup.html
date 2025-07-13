@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Window & Tab Manager</title>
+  <link rel="stylesheet" href="styles/popup.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Window & Tab Manager</h1>
+      <button id="openManager" class="open-manager-btn">Open Full Manager</button>
+    </header>
+    
+    <main class="content">
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading windows...</p>
+      </div>
+      
+      <div id="error" class="error hidden">
+        <p class="error-message"></p>
+        <button id="retry" class="retry-btn">Retry</button>
+      </div>
+      
+      <div id="windowsList" class="windows-list hidden">
+        <!-- Windows will be populated here -->
+      </div>
+    </main>
+    
+    <footer class="footer">
+      <div class="stats">
+        <span id="windowCount">0 windows</span>
+        <span id="tabCount">0 tabs</span>
+      </div>
+    </footer>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
