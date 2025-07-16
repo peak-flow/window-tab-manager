@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chrome Extension APIs - Reference Guide</title>
+  <link rel="stylesheet" href="styles/chrome-apis.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <a href="manager.html" class="back-link">← Back to Manager</a>
+      <h1>Chrome Extension APIs Reference</h1>
+      <p class="subtitle">Comprehensive guide to Chrome extension APIs with examples</p>
+    </header>
+
+    <nav class="sidebar">
+      <h3>Quick Navigation</h3>
+      <ul>
+        <li><a href="#tabs">Tabs API</a></li>
+        <li><a href="#windows">Windows API</a></li>
+        <li><a href="#storage">Storage API</a></li>
+        <li><a href="#runtime">Runtime API</a></li>
+        <li><a href="#contextMenus">Context Menus API</a></li>
+        <li><a href="#notifications">Notifications API</a></li>
+        <li><a href="#bookmarks">Bookmarks API</a></li>
+        <li><a href="#history">History API</a></li>
+        <li><a href="#downloads">Downloads API</a></li>
+        <li><a href="#webRequest">Web Request API</a></li>
+        <li><a href="#commands">Commands API</a></li>
+        <li><a href="#capture">Screen Capture APIs</a></li>
+        <li><a href="#audio">Audio/Video APIs</a></li>
+        <li><a href="#identity">Identity API</a></li>
+        <li><a href="#alarms">Alarms API</a></li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <!-- Tabs API -->
+      <section id="tabs" class="api-section">
+        <h2>chrome.tabs API</h2>
+        <p class="api-description">Create, modify, and interact with browser tabs. One of the most commonly used APIs.</p>
+        
+        <div class="permission-note">
+          <strong>Required Permission:</strong> <code>"tabs"</code>
+        </div>
+
+        <div class="example">
+          <h3>Create a New Tab</h3>
+          <pre><code class="language-javascript">// Basic tab creation
+chrome.tabs.create({
+  url: 'https://example.com',
+  active: true,  // Focus the new tab
+  pinned: false
+}, (tab) => {
+  console.log('Created tab:', tab.id);
+});
+
+// Create tab in specific window
+chrome.tabs.create({
+  windowId: windowId,
+  index: 0,  // Position at beginning
+  url: 'chrome://newtab/'
+});
+
+// Create multiple tabs
+const urls = ['https://google.com', 'https://github.com'];
+urls.forEach(url => {
+  chrome.tabs.create({ url });
+});</code></pre>
+        </div>
+
+        <div class="example">
+          <h3>Query and Filter Tabs</h3>
+          <pre><code class="language-javascript">// Get all tabs
+chrome.tabs.query({}, (tabs) => {
+  console.log(`Total tabs: ${tabs.length}`);
+});
+
+// Get active tab in current window
+chrome.tabs.query({
+  active: true,
+  currentWindow: true
+}, (tabs) => {
+  const activeTab = tabs[0];
+  console.log('Active tab:', activeTab.title);
+});
+
+// Find all YouTube tabs
+chrome.tabs.query({
+  url: '*://*.youtube.com/*'
+}, (tabs) => {
+  tabs.forEach(tab => {
+    console.log('YouTube tab:', tab.title);
+  });
+});
+
+// Get all audible tabs
+chrome.tabs.query({ audible: true }, (tabs) => {
+  console.log('Tabs playing audio:', tabs.length);
+});</code></pre>
+        </div>
+
+        <div class="example">
+          <h3>Update and Manipulate Tabs</h3>
+          <pre><code class="language-javascript">// Navigate to new URL
+chrome.tabs.update(tabId, {
+  url: 'https://example.com'
+});
+
+// Mute/unmute a tab
+chrome.tabs.update(tabId, {
+  muted: true
+});
+
+// Pin/unpin a tab
+chrome.tabs.update(tabId, {
+  pinned: true
+});
+
+// Reload a tab
+chrome.tabs.reload(tabId, {
+  bypassCache: true  // Hard reload
+});
+
+// Zoom a tab
+chrome.tabs.setZoom(tabId, 1.5);  // 150% zoom
+
+// Execute script in tab (requires additional permissions)
+chrome.tabs.executeScript(tabId, {
+  code: 'document.body.style.backgroundColor = "red"'
+});</code></pre>
+        </div>
+
+        <div class="example">
+          <h3>Tab Events</h3>
+          <pre><code class="language-javascript">// Tab created
+chrome.tabs.onCreated.addListener((tab) => {
+  console.log('New tab created:', tab.id);
+});
+
+// Tab updated (URL change, loading state, etc.)
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === 'complete') {
+    console.log('Tab loaded:', tab.url);
+  }
+});
+
+// Tab closed
+chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+  console.log('Tab closed:', tabId);
+});
+
+// Tab activated (user switched tabs)
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  console.log('Switched to tab:', activeInfo.tabId);
+});
+
+// Tab moved
+chrome.tabs.onMoved.addListener((tabId, moveInfo) => {
+  console.log(`Tab ${tabId} moved to index ${moveInfo.toIndex}`);
+});</code></pre>
+        </div>
+
+        <div class="example">
+          <h3>Advanced Tab Operations</h3>
+          <pre><code class="language-javascript">// Capture visible tab as image
+chrome.tabs.captureVisibleTab(null, {
+  format: 'png',
+  quality: 90
+}, (dataUrl) => {
+  // dataUrl contains base64 encoded image
+  console.log('Screenshot captured');
+});
+
+// Detect tab language
+chrome.tabs.detectLanguage(tabId, (language) => {
+  console.log('Page language:', language);
+});
+
+// Group tabs (Chrome 89+)
+chrome.tabs.group({
+  tabIds: [tab1Id, tab2Id, tab3Id]
+}, (groupId) => {
+  // Update group properties
+  chrome.tabGroups.update(groupId, {
+    title: 'Work Tabs',
+    color: 'blue'
+  });
+});
+
+// Move tabs between windows
+chrome.tabs.move([tab1Id, tab2Id], {
+  windowId: targetWindowId,
+  index: -1  // End of window
+});</code></pre>
+        </div>
+      </section>
+
+      <!-- Windows API -->
+      <section id="windows" class="api-section">
+        <h2>chrome.windows API</h2>
+        <p class="api-description">Create, modify, and interact with browser windows.</p>
+        
+        <div class="permission-note">
+          <strong>Required Permission:</strong> None for basic operations
+        </div>
+
+        <div class="example">
+          <h3>Create Windows</h3>
+          <pre><code class="language-javascript">// Create a new window
+chrome.windows.create({
+  url: 'https://example.com',
+  type: 'normal',  // 'normal', 'popup', 'panel'
+  state: 'maximized',  // 'normal', 'minimized', 'maximized', 'fullscreen'
+  focused: true,
+  width: 800,
+  height: 600,
+  left: 100,
+  top: 100
+}, (window) => {
+  console.log('Created window:', window.id);
+});
+
+// Create incognito window
+chrome.windows.create({
+  incognito: true,
+  url: 'https://example.com'
+});
+
+// Create window with multiple tabs
+chrome.windows.create({
+  url: [
+    'https://google.com',
+    'https://github.com',
+    'https://stackoverflow.com'
+  ]
+});</code></pre>
+        </div>
+
+        <div class="example">
+          <h3>Query and Manage Windows</h3>
+          <pre><code class="language-javascript">// Get all windows with tabs
+chrome.windows.getAll({
+  populate: true  // Include tabs array
+}, (windows) => {
+  windows.forEach(window => {
+    console.log(`Window ${window.id}: ${window.tabs.length} tabs`);
+  });
+});
+
+// Get current window
+chrome.windows.getCurrent((window) => {
+  console.log('Current window:', window.id);
+});
+
+// Get focused window
+chrome.windows.getLastFocused({
+  populate: true
+}, (window) => {
+  console.log('Focused window has', window.tabs.length, 'tabs');
+});
+
+// Update window properties
+chrome.windows.update(windowId, {
+  focused: true,
+  state: 'maximized',
+  drawAttention: true  // Flash the window
+});</code></pre>
+        </div>
+
+        <div class="example">
+          <h3>Window Events</h3>
+          <pre><code class="language-javascript">// Window created
+chrome.windows.onCreated.addListener((window) => {
+  console.log('New window created:', window.id);
+});
+
+// Window removed
+chrome.windows.onRemoved.addListener((windowId) => {
+  console.log('Window closed:', windowId);
+});
+
+// Window focus changed
+chrome.windows.onFocusChanged.addListener((windowId) => {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    console.log('No window focused');
+  } else {
+    console.log('Window focused:', windowId);
+  }
+});</code></pre>
+        </div>
+      </section>
+
+      <!-- Storage API -->
+      <section id="storage" class="api-section">
+        <h2>chrome.storage API</h2>
+        <p class="api-description">Store and retrieve data. Supports sync across devices.</p>
+        
+        <div class="permission-note">
+          <strong>Required Permission:</strong> <code>"storage"</code>
+        </div>
+
+        <div class="example">
+          <h3>Local Storage</h3>
+          <pre><code class="language-javascript">// Save data locally
+chrome.storage.local.set({
+  theme: 'dark',
+  favorites: ['tab1', 'tab2'],
+  settings: {
+    autoSave: true,
+    interval: 5000
+  }
+}, () => {
+  console.log('Data saved locally');
+});
+
+// Get local data
+chrome.storage.local.get(['theme', 'favorites'], (result) => {
+  console.log('Theme:', result.theme);
+  console.log('Favorites:', result.favorites);
+});
+
+// Get all local data
+chrome.storage.local.get(null, (items) => {
+  console.log('All local data:', items);
+});
+
+// Remove specific items
+chrome.storage.local.remove(['theme', 'favorites'], () => {
+  console.log('Items removed');
+});
+
+// Clear all local storage
+chrome.storage.local.clear();</code></pre>
+        </div>
+
+        <div class="example">
+          <h3>Sync Storage (Across Devices)</h3>
+          <pre><code class="language-javascript">// Save data that syncs across devices
+chrome.storage.sync.set({
+  userPreferences: {
+    language: 'en',
+    notifications: true
+  }
+}, () => {
+  if (chrome.runtime.lastError) {
+    console.error('Sync failed:', chrome.runtime.lastError);
+    return;
+  }
+  console.log('Preferences synced');
+});
+
+// Storage limits
+chrome.storage.sync.getBytesInUse((bytesInUse) => {
+  const limit = chrome.storage.sync.QUOTA_BYTES;
+  console.log(`Using ${bytesInUse} of ${limit} bytes`);
+});
+
+// Listen for storage changes
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'sync') {
+    for (let key in changes) {
+      console.log(`${key} changed:`);
+      console.log('Old value:', changes[key].oldValue);
+      console.log('New value:', changes[key].newValue);
+    }
+  }
+});</code></pre>
+        </div>
+      </section>
+
+      <!-- Context Menus API -->
+      <section id="contextMenus" class="api-section">
+        <h2>chrome.contextMenus API</h2>
+        <p class="api-description">Add items to the right-click context menu.</p>
+        
+        <div class="permission-note">
+          <strong>Required Permission:</strong> <code>"contextMenus"</code>
+        </div>
+
+        <div class="example">
+          <h3>Create Context Menu Items</h3>
+          <pre><code class="language-javascript">// Basic context menu item
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: 'saveImage',
+    title: 'Save Image to Collection',
+    contexts: ['image']
+  });
+  
+  chrome.contextMenus.create({
+    id: 'searchText',
+    title: 'Search for "%s"',  // %s is replaced with selected text
+    contexts: ['selection']
+  });
+});
+
+// Nested menu structure
+chrome.contextMenus.create({
+  id: 'parent',
+  title: 'My Extension',
+  contexts: ['all']
+});
+
+chrome.contextMenus.create({
+  id: 'child1',
+  parentId: 'parent',
+  title: 'Option 1',
+  contexts: ['all']
+});
+
+chrome.contextMenus.create({
+  id: 'child2',
+  parentId: 'parent',
+  title: 'Option 2',
+  contexts: ['all']
+});
+
+// Handle clicks
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === 'saveImage') {
+    console.log('Image URL:', info.srcUrl);
+  } else if (info.menuItemId === 'searchText') {
+    console.log('Selected text:', info.selectionText);
+    // Open search in new tab
+    chrome.tabs.create({
+      url: `https://google.com/search?q=${encodeURIComponent(info.selectionText)}`
+    });
+  }
+});</code></pre>
+        </div>
+      </section>
+
+      <!-- Notifications API -->
+      <section id="notifications" class="api-section">
+        <h2>chrome.notifications API</h2>
+        <p class="api-description">Display desktop notifications to the user.</p>
+        
+        <div class="permission-note">
+          <strong>Required Permission:</strong> <code>"notifications"</code>
+        </div>
+
+        <div class="example">
+          <h3>Create Notifications</h3>
+          <pre><code class="language-javascript">// Basic notification
+chrome.notifications.create('basic-notif', {
+  type: 'basic',
+  iconUrl: 'icon-128.png',
+  title: 'Task Complete!',
+  message: 'Your download has finished.',
+  priority: 2
+});
+
+// Notification with buttons
+chrome.notifications.create('button-notif', {
+  type: 'basic',
+  iconUrl: 'icon-128.png',
+  title: 'New Message',
+  message: 'You have a new message from John',
+  buttons: [
+    { title: 'Reply' },
+    { title: 'Ignore' }
+  ],
+  requireInteraction: true  // Don't auto-dismiss
+});
+
+// List notification
+chrome.notifications.create('list-notif', {
+  type: 'list',
+  iconUrl: 'icon-128.png',
+  title: '3 new tasks',
+  message: 'You have new tasks to complete',
+  items: [
+    { title: 'Task 1', message: 'Review pull request' },
+    { title: 'Task 2', message: 'Update documentation' },
+    { title: 'Task 3', message: 'Fix bug #123' }
+  ]
+});
+
+// Progress notification
+let progress = 0;
+const notifId = 'progress-notif';
+
+chrome.notifications.create(notifId, {
+  type: 'progress',
+  iconUrl: 'icon-128.png',
+  title: 'Downloading...',
+  message: 'Your file is downloading',
+  progress: progress
+});
+
+// Update progress
+const interval = setInterval(() => {
+  progress += 10;
+  chrome.notifications.update(notifId, {
+    progress: progress
+  });
+  
+  if (progress >= 100) {
+    clearInterval(interval);
+    setTimeout(() => {
+      chrome.notifications.clear(notifId);
+    }, 2000);
+  }
+}, 500);
+
+// Handle notification interactions
+chrome.notifications.onClicked.addListener((notifId) => {
+  console.log('Notification clicked:', notifId);
+});
+
+chrome.notifications.onButtonClicked.addListener((notifId, btnIdx) => {
+  if (notifId === 'button-notif') {
+    if (btnIdx === 0) {
+      console.log('Reply clicked');
+    } else {
+      console.log('Ignore clicked');
+    }
+  }
+});</code></pre>
+        </div>
+      </section>
+
+      <!-- Downloads API -->
+      <section id="downloads" class="api-section">
+        <h2>chrome.downloads API</h2>
+        <p class="api-description">Programmatically initiate, monitor, and manage downloads.</p>
+        
+        <div class="permission-note">
+          <strong>Required Permission:</strong> <code>"downloads"</code>
+        </div>
+
+        <div class="example">
+          <h3>Download Operations</h3>
+          <pre><code class="language-javascript">// Start a download
+chrome.downloads.download({
+  url: 'https://example.com/file.pdf',
+  filename: 'downloads/myfile.pdf',  // Relative to Downloads folder
+  conflictAction: 'uniquify',  // 'uniquify', 'overwrite', 'prompt'
+  saveAs: false  // Show save dialog
+}, (downloadId) => {
+  console.log('Download started:', downloadId);
+});
+
+// Monitor download progress
+chrome.downloads.onChanged.addListener((downloadDelta) => {
+  if (downloadDelta.state) {
+    if (downloadDelta.state.current === 'complete') {
+      console.log('Download completed:', downloadDelta.id);
+    } else if (downloadDelta.state.current === 'interrupted') {
+      console.log('Download failed:', downloadDelta.id);
+    }
+  }
+});
+
+// Search downloads
+chrome.downloads.search({
+  query: ['pdf'],  // Search terms
+  state: 'complete',
+  limit: 10
+}, (results) => {
+  results.forEach(item => {
+    console.log('Downloaded:', item.filename);
+  });
+});
+
+// Pause/resume/cancel downloads
+chrome.downloads.pause(downloadId);
+chrome.downloads.resume(downloadId);
+chrome.downloads.cancel(downloadId);
+
+// Open downloaded file
+chrome.downloads.open(downloadId);
+
+// Show in folder
+chrome.downloads.show(downloadId);</code></pre>
+        </div>
+      </section>
+
+      <!-- Commands API -->
+      <section id="commands" class="api-section">
+        <h2>chrome.commands API</h2>
+        <p class="api-description">Define keyboard shortcuts for your extension.</p>
+        
+        <div class="permission-note">
+          <strong>Required in manifest.json:</strong> <code>"commands"</code> section
+        </div>
+
+        <div class="example">
+          <h3>Define Commands in Manifest</h3>
+          <pre><code class="language-json">// In manifest.json
+{
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      },
+      "description": "Open the extension"
+    },
+    "toggle-feature": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U",
+        "mac": "Command+Shift+U"
+      },
+      "description": "Toggle feature on/off"
+    },
+    "take-screenshot": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S"
+      },
+      "description": "Take a screenshot",
+      "global": true  // Works even when Chrome isn't focused
+    }
+  }
+}</code></pre>
+          
+          <h3>Handle Commands in Background Script</h3>
+          <pre><code class="language-javascript">// Listen for keyboard shortcuts
+chrome.commands.onCommand.addListener((command) => {
+  console.log('Command triggered:', command);
+  
+  switch(command) {
+    case 'toggle-feature':
+      // Toggle your feature
+      toggleFeature();
+      break;
+      
+    case 'take-screenshot':
+      // Take screenshot of active tab
+      chrome.tabs.captureVisibleTab(null, {
+        format: 'png'
+      }, (dataUrl) => {
+        // Handle screenshot
+        console.log('Screenshot captured');
+      });
+      break;
+  }
+});
+
+// Get all commands programmatically
+chrome.commands.getAll((commands) => {
+  commands.forEach(command => {
+    console.log(`${command.name}: ${command.shortcut || 'not set'}`);
+  });
+});</code></pre>
+        </div>
+      </section>
+
+      <!-- Screen Capture APIs -->
+      <section id="capture" class="api-section">
+        <h2>Screen Capture APIs</h2>
+        <p class="api-description">Capture screenshots and record screen content.</p>
+        
+        <div class="permission-note">
+          <strong>Required Permission:</strong> <code>"activeTab"</code> or <code>"tabs"</code> or <code>"&lt;all_urls&gt;"</code>
+        </div>
+
+        <div class="example">
+          <h3>Tab Screenshot</h3>
+          <pre><code class="language-javascript">// Capture visible area of active tab
+chrome.tabs.captureVisibleTab(null, {
+  format: 'jpeg',  // 'jpeg' or 'png'
+  quality: 90      // For JPEG only (0-100)
+}, (dataUrl) => {
+  // Create a link to download
+  const link = document.createElement('a');
+  link.href = dataUrl;
+  link.download = 'screenshot.jpg';
+  link.click();
+});
+
+// Capture specific window
+chrome.tabs.captureVisibleTab(windowId, {
+  format: 'png'
+}, (dataUrl) => {
+  // Convert to blob
+  fetch(dataUrl)
+    .then(res => res.blob())
+    .then(blob => {
+      // Upload or process blob
+      console.log('Screenshot size:', blob.size);
+    });
+});</code></pre>
+        </div>
+
+        <div class="example">
+          <h3>Desktop/Screen Capture</h3>
+          <pre><code class="language-javascript">// Request desktop capture (requires user permission)
+chrome.desktopCapture.chooseDesktopMedia(
+  ['screen', 'window', 'tab'],
+  (streamId) => {
+    if (!streamId) {
+      console.log('User cancelled');
+      return;
+    }
+    
+    // Use streamId to get media stream
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        mandatory: {
+          chromeMediaSource: 'desktop',
+          chromeMediaSourceId: streamId
+        }
+      }
+    }).then(stream => {
+      // Use the stream
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.play();
+      
+      // Stop sharing
+      stream.getTracks().forEach(track => track.stop());
+    });
+  }
+);</code></pre>
+        </div>
+      </section>
+
+      <!-- Audio/Video APIs -->
+      <section id="audio" class="api-section">
+        <h2>Audio/Video Media APIs</h2>
+        <p class="api-description">Control and monitor media playback across tabs.</p>
+        
+        <div class="permission-note">
+          <strong>Note:</strong> Some features require content scripts
+        </div>
+
+        <div class="example">
+          <h3>Tab Audio Control</h3>
+          <pre><code class="language-javascript">// Find tabs playing audio
+chrome.tabs.query({ audible: true }, (tabs) => {
+  tabs.forEach(tab => {
+    console.log('Playing audio:', tab.title);
+    
+    // Mute the tab
+    chrome.tabs.update(tab.id, {
+      muted: true
+    });
+  });
+});
+
+// Monitor audio state changes
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.audible !== undefined) {
+    console.log(`Tab ${tabId} audio: ${changeInfo.audible ? 'started' : 'stopped'}`);
+  }
+  
+  if (changeInfo.mutedInfo) {
+    console.log(`Tab ${tabId} muted: ${changeInfo.mutedInfo.muted}`);
+  }
+});</code></pre>
+        </div>
+
+        <div class="example">
+          <h3>Content Script for Media Control</h3>
+          <pre><code class="language-javascript">// In content script - control HTML5 media
+function pauseAllMedia() {
+  // Pause all video elements
+  document.querySelectorAll('video').forEach(video => {
+    if (!video.paused) {
+      video.pause();
+    }
+  });
+  
+  // Pause all audio elements
+  document.querySelectorAll('audio').forEach(audio => {
+    if (!audio.paused) {
+      audio.pause();
+    }
+  });
+}
+
+// Get media info
+function getMediaInfo() {
+  const videos = Array.from(document.querySelectorAll('video'));
+  const audios = Array.from(document.querySelectorAll('audio'));
+  
+  return {
+    videos: videos.map(v => ({
+      src: v.src,
+      duration: v.duration,
+      currentTime: v.currentTime,
+      paused: v.paused,
+      muted: v.muted,
+      volume: v.volume
+    })),
+    audios: audios.map(a => ({
+      src: a.src,
+      duration: a.duration,
+      currentTime: a.currentTime,
+      paused: a.paused
+    }))
+  };
+}
+
+// Picture-in-Picture API
+async function togglePiP() {
+  const video = document.querySelector('video');
+  if (!video) return;
+  
+  try {
+    if (document.pictureInPictureElement) {
+      await document.exitPictureInPicture();
+    } else {
+      await video.requestPictureInPicture();
+    }
+  } catch (error) {
+    console.error('PiP error:', error);
+  }
+}</code></pre>
+        </div>
+      </section>
+
+      <!-- Web Request API -->
+      <section id="webRequest" class="api-section">
+        <h2>chrome.webRequest API</h2>
+        <p class="api-description">Intercept and modify network requests.</p>
+        
+        <div class="permission-note">
+          <strong>Required Permission:</strong> <code>"webRequest"</code>, <code>"webRequestBlocking"</code>
+          <br>
+          <strong>Note:</strong> Limited in Manifest V3 - use declarativeNetRequest instead
+        </div>
+
+        <div class="example">
+          <h3>Monitor Requests (Manifest V2)</h3>
+          <pre><code class="language-javascript">// Listen to all requests
+chrome.webRequest.onBeforeRequest.addListener(
+  (details) => {
+    console.log('Request:', details.url);
+    
+    // Block requests to specific domains
+    if (details.url.includes('ads.example.com')) {
+      return { cancel: true };
+    }
+  },
+  { urls: ['<all_urls>'] },
+  ['blocking']
+);
+
+// Modify headers
+chrome.webRequest.onBeforeSendHeaders.addListener(
+  (details) => {
+    // Add custom header
+    details.requestHeaders.push({
+      name: 'X-Custom-Header',
+      value: 'MyExtension'
+    });
+    
+    return { requestHeaders: details.requestHeaders };
+  },
+  { urls: ['<all_urls>'] },
+  ['blocking', 'requestHeaders']
+);</code></pre>
+        </div>
+
+        <div class="example">
+          <h3>Declarative Net Request (Manifest V3)</h3>
+          <pre><code class="language-javascript">// Define rules in manifest.json or dynamically
+const rules = [{
+  id: 1,
+  priority: 1,
+  action: {
+    type: 'block'
+  },
+  condition: {
+    urlFilter: '*://*.doubleclick.net/*',
+    resourceTypes: ['script', 'image']
+  }
+}, {
+  id: 2,
+  priority: 1,
+  action: {
+    type: 'modifyHeaders',
+    requestHeaders: [{
+      header: 'User-Agent',
+      operation: 'set',
+      value: 'MyBot 1.0'
+    }]
+  },
+  condition: {
+    urlFilter: '*://api.example.com/*',
+    resourceTypes: ['xmlhttprequest']
+  }
+}];
+
+// Add rules dynamically
+chrome.declarativeNetRequest.updateDynamicRules({
+  addRules: rules,
+  removeRuleIds: []
+});</code></pre>
+        </div>
+      </section>
+
+      <!-- Bookmarks API -->
+      <section id="bookmarks" class="api-section">
+        <h2>chrome.bookmarks API</h2>
+        <p class="api-description">Create, organize, and search bookmarks.</p>
+        
+        <div class="permission-note">
+          <strong>Required Permission:</strong> <code>"bookmarks"</code>
+        </div>
+
+        <div class="example">
+          <h3>Bookmark Operations</h3>
+          <pre><code class="language-javascript">// Create a bookmark
+chrome.bookmarks.create({
+  parentId: '1',  // Bookmarks bar
+  title: 'My Site',
+  url: 'https://example.com'
+}, (bookmark) => {
+  console.log('Created bookmark:', bookmark.id);
+});
+
+// Create bookmark folder
+chrome.bookmarks.create({
+  parentId: '1',
+  title: 'My Folder'
+}, (folder) => {
+  // Add bookmarks to folder
+  chrome.bookmarks.create({
+    parentId: folder.id,
+    title: 'Site in folder',
+    url: 'https://example.com'
+  });
+});
+
+// Search bookmarks
+chrome.bookmarks.search('github', (results) => {
+  results.forEach(bookmark => {
+    console.log(bookmark.title, bookmark.url);
+  });
+});
+
+// Get bookmark tree
+chrome.bookmarks.getTree((tree) => {
+  // tree[0] is the root
+  function traverse(node, depth = 0) {
+    console.log('  '.repeat(depth) + node.title);
+    if (node.children) {
+      node.children.forEach(child => traverse(child, depth + 1));
+    }
+  }
+  traverse(tree[0]);
+});
+
+// Move bookmark
+chrome.bookmarks.move(bookmarkId, {
+  parentId: newParentId,
+  index: 0
+});
+
+// Update bookmark
+chrome.bookmarks.update(bookmarkId, {
+  title: 'New Title',
+  url: 'https://newurl.com'
+});
+
+// Remove bookmark
+chrome.bookmarks.remove(bookmarkId);</code></pre>
+        </div>
+      </section>
+
+      <!-- History API -->
+      <section id="history" class="api-section">
+        <h2>chrome.history API</h2>
+        <p class="api-description">Interact with the browser's history.</p>
+        
+        <div class="permission-note">
+          <strong>Required Permission:</strong> <code>"history"</code>
+        </div>
+
+        <div class="example">
+          <h3>History Operations</h3>
+          <pre><code class="language-javascript">// Search history
+chrome.history.search({
+  text: 'github',
+  startTime: Date.now() - (7 * 24 * 60 * 60 * 1000),  // Last week
+  maxResults: 100
+}, (results) => {
+  results.forEach(item => {
+    console.log(item.title, item.url, new Date(item.lastVisitTime));
+  });
+});
+
+// Get visits for a URL
+chrome.history.getVisits({
+  url: 'https://github.com'
+}, (visits) => {
+  console.log(`Visited ${visits.length} times`);
+  visits.forEach(visit => {
+    console.log(new Date(visit.visitTime));
+  });
+});
+
+// Add URL to history
+chrome.history.addUrl({
+  url: 'https://example.com'
+});
+
+// Delete URL from history
+chrome.history.deleteUrl({
+  url: 'https://example.com'
+});
+
+// Delete history range
+chrome.history.deleteRange({
+  startTime: Date.now() - (60 * 60 * 1000),  // Last hour
+  endTime: Date.now()
+}, () => {
+  console.log('History cleared for last hour');
+});
+
+// Monitor history changes
+chrome.history.onVisited.addListener((historyItem) => {
+  console.log('Visited:', historyItem.url);
+});</code></pre>
+        </div>
+      </section>
+
+      <!-- Identity API -->
+      <section id="identity" class="api-section">
+        <h2>chrome.identity API</h2>
+        <p class="api-description">OAuth2 authentication and user identity.</p>
+        
+        <div class="permission-note">
+          <strong>Required Permission:</strong> <code>"identity"</code>
+        </div>
+
+        <div class="example">
+          <h3>OAuth Authentication</h3>
+          <pre><code class="language-javascript">// Get OAuth token
+chrome.identity.getAuthToken({
+  interactive: true  // Show login if needed
+}, (token) => {
+  if (chrome.runtime.lastError) {
+    console.error(chrome.runtime.lastError);
+    return;
+  }
+  
+  // Use token for API calls
+  fetch('https://www.googleapis.com/oauth2/v1/userinfo', {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+  .then(response => response.json())
+  .then(userInfo => {
+    console.log('User:', userInfo);
+  });
+});
+
+// Remove cached token
+chrome.identity.removeCachedAuthToken({
+  token: token
+}, () => {
+  console.log('Token removed');
+});
+
+// Launch web auth flow (for non-Google OAuth)
+chrome.identity.launchWebAuthFlow({
+  url: 'https://github.com/login/oauth/authorize?client_id=YOUR_CLIENT_ID',
+  interactive: true
+}, (redirectUrl) => {
+  if (chrome.runtime.lastError) {
+    console.error(chrome.runtime.lastError);
+    return;
+  }
+  
+  // Extract token from redirect URL
+  const url = new URL(redirectUrl);
+  const code = url.searchParams.get('code');
+  console.log('Auth code:', code);
+});
+
+// Get user profile
+chrome.identity.getProfileUserInfo((userInfo) => {
+  console.log('Email:', userInfo.email);
+  console.log('ID:', userInfo.id);
+});</code></pre>
+        </div>
+      </section>
+
+      <!-- Alarms API -->
+      <section id="alarms" class="api-section">
+        <h2>chrome.alarms API</h2>
+        <p class="api-description">Schedule code to run periodically or at a specified time.</p>
+        
+        <div class="permission-note">
+          <strong>Required Permission:</strong> <code>"alarms"</code>
+        </div>
+
+        <div class="example">
+          <h3>Creating and Managing Alarms</h3>
+          <pre><code class="language-javascript">// Create a one-time alarm
+chrome.alarms.create('reminder', {
+  when: Date.now() + (60 * 1000)  // 1 minute from now
+});
+
+// Create a repeating alarm
+chrome.alarms.create('check-updates', {
+  delayInMinutes: 1,
+  periodInMinutes: 30  // Repeat every 30 minutes
+});
+
+// Create an alarm for specific time
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+tomorrow.setHours(9, 0, 0, 0);  // 9 AM tomorrow
+
+chrome.alarms.create('daily-task', {
+  when: tomorrow.getTime(),
+  periodInMinutes: 24 * 60  // Repeat daily
+});
+
+// Listen for alarms
+chrome.alarms.onAlarm.addListener((alarm) => {
+  console.log('Alarm fired:', alarm.name);
+  
+  if (alarm.name === 'check-updates') {
+    checkForUpdates();
+  } else if (alarm.name === 'reminder') {
+    showNotification('Time for your reminder!');
+  }
+});
+
+// Get all alarms
+chrome.alarms.getAll((alarms) => {
+  alarms.forEach(alarm => {
+    console.log(`Alarm ${alarm.name}: next at ${new Date(alarm.scheduledTime)}`);
+  });
+});
+
+// Clear specific alarm
+chrome.alarms.clear('reminder');
+
+// Clear all alarms
+chrome.alarms.clearAll();</code></pre>
+        </div>
+      </section>
+
+      <!-- Additional Resources -->
+      <section class="resources">
+        <h2>Additional Resources</h2>
+        <ul>
+          <li><a href="https://developer.chrome.com/docs/extensions/reference/" target="_blank">Official Chrome Extension API Reference</a></li>
+          <li><a href="https://developer.chrome.com/docs/extensions/mv3/" target="_blank">Manifest V3 Documentation</a></li>
+          <li><a href="https://github.com/GoogleChrome/chrome-extensions-samples" target="_blank">Chrome Extension Samples</a></li>
+          <li><a href="https://groups.google.com/a/chromium.org/g/chromium-extensions" target="_blank">Chrome Extensions Google Group</a></li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>
