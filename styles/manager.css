@@ -212,6 +212,8 @@ body {
   overflow: hidden;
   transition: all 0.3s ease;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .window-card:hover {
@@ -281,10 +283,11 @@ body {
 
 /* Tabs container */
 .tabs-container {
-  padding: 12px;
-  min-height: 200px;
+  padding: 8px;
+  min-height: 180px;
   max-height: 500px;
   overflow-y: auto;
+  flex: 1; /* Fill available space */
 }
 
 .tabs-container.empty {
@@ -295,14 +298,27 @@ body {
   font-style: italic;
 }
 
+/* Ensure proper drop target coverage */
+.tabs-container {
+  position: relative;
+}
+
+/* Fill remaining space after last tab */
+.tabs-container::after {
+  content: '';
+  display: block;
+  min-height: 20px;
+  flex: 1;
+}
+
 /* Tab item */
 .tab-item {
   display: flex;
   align-items: center;
-  padding: 12px;
-  margin-bottom: 8px;
+  padding: 8px 12px;
+  margin-bottom: 4px;
   background: #f8f9fa;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: grab;
   transition: all 0.2s;
   position: relative;
@@ -577,8 +593,8 @@ body {
 }
 
 .compact-view .tab-item {
-  padding: 8px;
-  margin-bottom: 4px;
+  padding: 6px 8px;
+  margin-bottom: 2px;
   border-radius: 4px;
 }
 
