@@ -32,6 +32,10 @@
     </header>
 
     <main class="main">
+      <div class="search-bar-container">
+        <input type="text" id="search-bar" class="search-field" placeholder="Search tabs by URL...">
+      </div>
+      
       <div id="loading" class="loading-state">
         <div class="spinner"></div>
         <p>Loading windows and tabs...</p>
@@ -51,6 +55,10 @@
             <span id="tabCount" class="stat-item">0 tabs</span>
           </div>
           <div class="view-options">
+            <button id="sendToNewWindowBtn" class="btn btn-primary btn-small" style="display: none;">
+              <span class="icon">🪟</span>
+              Send to New Window
+            </button>
             <button id="viewModeBtn" class="btn btn-secondary btn-small">
               <span class="icon">⚏</span>
               Grid View

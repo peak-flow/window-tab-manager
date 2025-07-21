@@ -1,18 +1,19 @@
 // Manager page script for Window & Tab Manager
 
 class WindowManager {
-  constructor() {
-    this.windows = [];
-    this.dragData = null;
-    this.viewMode = 'grid'; // 'grid' or 'list'
-    this.compactMode = false;
-    
-    this.initializeElements();
-    this.setupEventListeners();
-    this.loadWindows();
-  }
+    constructor() {
+        this.windows = [];
+        this.dragData = null;
+        this.viewMode = 'grid'; // 'grid' or 'list'
+        this.compactMode = false;
+        this.selectedTabs = new Set(); // Track selected tab IDs
+        
+        this.initializeElements();
+        this.setupEventListeners();
+        this.loadWindows();
+    }
 
-  initializeElements() {
+    initializeElements() {
     this.elements = {
       loading: document.getElementById('loading'),
       error: document.getElementById('error'),
@@ -26,6 +27,8 @@ class WindowManager {
       tabCount: document.getElementById('tabCount'),
       viewModeBtn: document.getElementById('viewModeBtn'),
       compactModeBtn: document.getElementById('compactModeBtn'),
+      sendToNewWindowBtn: document.getElementById('sendToNewWindowBtn'),
+      searchBar: document.getElementById('search-bar'),
       dropZone: document.getElementById('dropZone'),
       toast: document.getElementById('toast'),
       confirmModal: document.getElementById('confirmModal'),
@@ -41,6 +44,12 @@ class WindowManager {
     this.elements.newWindowBtn.addEventListener('click', () => this.createNewWindow());
     this.elements.viewModeBtn.addEventListener('click', () => this.toggleViewMode());
     this.elements.compactModeBtn.addEventListener('click', () => this.toggleCompactMode());
+    this.elements.sendToNewWindowBtn.addEventListener('click', () => this.sendSelectedToNewWindow());
+    
+    // Search bar
+    if (this.elements.searchBar) {
+      this.elements.searchBar.addEventListener('input', this.filterTabs.bind(this));
+    }
 
     // Modal
     this.elements.modalCancel.addEventListener('click', () => this.hideModal());
@@ -98,24 +107,37 @@ class WindowManager {
     }
   }
 
-  renderWindows() {
-    this.elements.windowsContainer.innerHTML = '';
-    
-    if (this.windows.length === 0) {
-      this.elements.windowsContainer.innerHTML = `
-        <div class="empty-state">
-          <h2>No windows found</h2>
-          <p>Click "New Window" to create one</p>
-        </div>
-      `;
-      return;
+  // Method to handle search input and filter tabs
+    filterTabs() {
+        const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+        
+        // Filter through all windows and tabs
+        const filteredWindows = this.windows.map(window => {
+          const filteredTabs = window.tabs.filter(tab => tab.url.toLowerCase().includes(searchTerm));
+          return { ...window, tabs: filteredTabs };
+        }).filter(window => window.tabs.length > 0);
+
+        // Re-render the window list with filtered results
+        this.renderWindows(filteredWindows);
     }
     
-    this.windows.forEach((window, index) => {
-      const windowElement = this.createWindowElement(window, index);
-      this.elements.windowsContainer.appendChild(windowElement);
-    });
-  }
+    renderWindows(windows = this.windows) {
+        this.elements.windowsContainer.innerHTML = '';
+        
+        if (windows.length === 0) {
+            this.elements.windowsContainer.innerHTML = `
+                <div class="empty-state">
+                    <h2>No windows found</h2>
+                </div>
+            `;
+            return;
+        }
+    
+        windows.forEach((window, index) => {
+            const windowElement = this.createWindowElement(window, index);
+            this.elements.windowsContainer.appendChild(windowElement);
+        });
+    }
 
   createWindowElement(window, index) {
     const windowDiv = document.createElement('div');
@@ -150,7 +172,27 @@ class WindowManager {
   }
 
   createTabHTML(tab) {
-    const faviconUrl = tab.favIconUrl || `chrome://favicon/size/16@2x/${encodeURIComponent(tab.url)}`;
+    // Handle favicon URL with proper fallbacks
+    let faviconUrl = tab.favIconUrl;
+    
+    // Determine the best favicon approach based on URL type
+    if (tab.url.startsWith('chrome-extension://')) {
+      // For extension pages, use a generic extension icon
+      faviconUrl = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M20.5,11H19V7c0-1.1-0.9-2-2-2h-4V3.5C13,2.12,11.88,1,10.5,1S8,2.12,8,3.5V5H4C2.9,5,2,5.9,2,7v3.8h1.5c1.4,0,2.5,1.1,2.5,2.5S4.9,16,3.5,16H2V20c0,1.1,0.9,2,2,2h3.8v-1.5c0-1.4,1.1-2.5,2.5-2.5s2.5,1.1,2.5,2.5V22H17c1.1,0,2-0.9,2-2v-4h1.5c1.38,0,2.5-1.12,2.5-2.5S21.88,11,20.5,11z"/></svg>';
+    } else if (tab.url.startsWith('file://')) {
+      // For local files, use a file icon
+      faviconUrl = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/></svg>';
+    } else if (tab.url.startsWith('chrome://')) {
+      // For chrome pages, use a chrome icon
+      faviconUrl = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M12,20L15.46,14H8.54L12,20M12,4A8,8 0 0,1 20,12C20,12.34 19.97,12.67 19.92,13H16.64C17.21,12.17 17.21,11.83 16.64,11H19.92C19.97,11.33 20,11.66 20,12A8,8 0 0,1 12,20V4M4,12A8,8 0 0,1 12,4V20A8,8 0 0,1 4,12Z"/></svg>';
+    } else if (!faviconUrl && tab.url.startsWith('http')) {
+      // For web URLs without favicons, try chrome://favicon
+      faviconUrl = `chrome://favicon/size/16@2x/${encodeURIComponent(tab.url)}`;
+    } else if (!faviconUrl) {
+      // Generic fallback for any other case
+      faviconUrl = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M16.36,14C16.44,13.34 16.5,12.68 16.5,12C16.5,11.32 16.44,10.66 16.36,10H19.74C19.9,10.64 20,11.31 20,12C20,12.69 19.9,13.36 19.74,14M14.59,19.56C15.19,18.45 15.65,17.25 15.97,16H18.92C17.96,17.65 16.43,18.93 14.59,19.56M14.34,14H9.66C9.56,13.34 9.5,12.68 9.5,12C9.5,11.32 9.56,10.65 9.66,10H14.34C14.43,10.65 14.5,11.32 14.5,12C14.5,12.68 14.43,13.34 14.34,14M12,19.96C11.17,18.76 10.5,17.43 10.09,16H13.91C13.5,17.43 12.83,18.76 12,19.96M8,8H5.08C6.03,6.34 7.57,5.06 9.4,4.44C8.8,5.55 8.35,6.75 8,8M5.08,16H8C8.35,17.25 8.8,18.45 9.4,19.56C7.57,18.93 6.03,17.65 5.08,16M4.26,14C4.1,13.36 4,12.69 4,12C4,11.31 4.1,10.64 4.26,10H7.64C7.56,10.66 7.5,11.32 7.5,12C7.5,12.68 7.56,13.34 7.64,14M12,4.03C12.83,5.23 13.5,6.57 13.91,8H10.09C10.5,6.57 11.17,5.23 12,4.03M18.92,8H15.97C15.65,6.75 15.19,5.55 14.59,4.44C16.43,5.07 17.96,6.34 18.92,8Z"/></svg>';
+    }
+    
     const tabTitle = tab.title || 'Untitled';
     const displayUrl = this.getDisplayUrl(tab.url);
     
@@ -160,11 +202,12 @@ class WindowManager {
     if (tab.pinned) indicators.push('<span class="tab-indicator tab-pinned" title="Pinned">📌</span>');
     
     return `
-      <div class="tab-item ${tab.active ? 'active' : ''} ${tab.pinned ? 'pinned' : ''}" 
+      <div class="tab-item ${tab.active ? 'active' : ''} ${tab.pinned ? 'pinned' : ''}${this.selectedTabs.has(tab.id) ? ' selected' : ''}" 
            data-tab-id="${tab.id}" 
            data-window-id="${tab.windowId}"
            draggable="true">
-        <img class="tab-favicon" src="${this.escapeHtml(faviconUrl)}" alt="" onerror="this.style.display='none'">
+        <input type="checkbox" class="tab-checkbox" data-tab-id="${tab.id}" ${this.selectedTabs.has(tab.id) ? 'checked' : ''}>
+        <img class="tab-favicon" src="${this.escapeHtml(faviconUrl)}" alt="">
         <div class="tab-info">
           <div class="tab-title">${this.escapeHtml(tabTitle)}</div>
           <div class="tab-url">${this.escapeHtml(displayUrl)}</div>
@@ -207,6 +250,34 @@ class WindowManager {
     
     tabItems.forEach(tabItem => {
       this.setupTabEventListeners(tabItem);
+      
+      // Handle favicon errors with better fallback
+      const favicon = tabItem.querySelector('.tab-favicon');
+      if (favicon) {
+        favicon.addEventListener('error', () => {
+          // Try a different approach based on the original URL
+          const tabId = parseInt(tabItem.dataset.tabId);
+          const tab = this.findTabById(tabId);
+          
+          if (tab && favicon.src.includes('chrome://favicon')) {
+            // If chrome://favicon failed, try a generic web icon
+            favicon.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M16.36,14C16.44,13.34 16.5,12.68 16.5,12C16.5,11.32 16.44,10.66 16.36,10H19.74C19.9,10.64 20,11.31 20,12C20,12.69 19.9,13.36 19.74,14M14.59,19.56C15.19,18.45 15.65,17.25 15.97,16H18.92C17.96,17.65 16.43,18.93 14.59,19.56M14.34,14H9.66C9.56,13.34 9.5,12.68 9.5,12C9.5,11.32 9.56,10.65 9.66,10H14.34C14.43,10.65 14.5,11.32 14.5,12C14.5,12.68 14.43,13.34 14.34,14M12,19.96C11.17,18.76 10.5,17.43 10.09,16H13.91C13.5,17.43 12.83,18.76 12,19.96M8,8H5.08C6.03,6.34 7.57,5.06 9.4,4.44C8.8,5.55 8.35,6.75 8,8M5.08,16H8C8.35,17.25 8.8,18.45 9.4,19.56C7.57,18.93 6.03,17.65 5.08,16M4.26,14C4.1,13.36 4,12.69 4,12C4,11.31 4.1,10.64 4.26,10H7.64C7.56,10.66 7.5,11.32 7.5,12C7.5,12.68 7.56,13.34 7.64,14M12,4.03C12.83,5.23 13.5,6.57 13.91,8H10.09C10.5,6.57 11.17,5.23 12,4.03M18.92,8H15.97C15.65,6.75 15.19,5.55 14.59,4.44C16.43,5.07 17.96,6.34 18.92,8Z"/></svg>';
+          } else {
+            // Show a blank placeholder instead of hiding the favicon completely
+            favicon.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><rect width="16" height="16" fill="transparent" stroke="%23ccc" stroke-width="1" rx="2"/></svg>';
+            favicon.style.display = 'inline';
+          }
+        });
+      }
+    });
+    
+    // Tab checkbox event listeners
+    const tabCheckboxes = windowElement.querySelectorAll('.tab-checkbox');
+    tabCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', (e) => {
+        e.stopPropagation();
+        this.handleTabSelection(parseInt(checkbox.dataset.tabId), checkbox.checked);
+      });
     });
     
     // Window drop zone
@@ -237,7 +308,7 @@ class WindowManager {
     
     // Tab click to focus
     tabItem.addEventListener('click', (e) => {
-      if (e.target.classList.contains('tab-btn')) return;
+      if (e.target.classList.contains('tab-btn') || e.target.classList.contains('tab-checkbox')) return;
       this.focusTab(tabId);
     });
     
@@ -525,6 +596,63 @@ class WindowManager {
     }
   }
 
+  handleTabSelection(tabId, isSelected) {
+    if (isSelected) {
+      this.selectedTabs.add(tabId);
+    } else {
+      this.selectedTabs.delete(tabId);
+    }
+    
+    // Update the button visibility based on selection count
+    if (this.elements.sendToNewWindowBtn) {
+      this.elements.sendToNewWindowBtn.style.display = this.selectedTabs.size > 0 ? 'inline-block' : 'none';
+    }
+  }
+
+  async sendSelectedToNewWindow() {
+    if (this.selectedTabs.size === 0) {
+      this.showToast('No tabs selected', 'error');
+      return;
+    }
+    
+    try {
+      const tabIds = Array.from(this.selectedTabs);
+      
+      // Create new window with the first selected tab
+      const firstTabId = tabIds[0];
+      const newWindow = await chrome.windows.create({
+        tabId: firstTabId,
+        focused: true
+      });
+      
+      // Move remaining tabs to the new window
+      if (tabIds.length > 1) {
+        for (let i = 1; i < tabIds.length; i++) {
+          await chrome.tabs.move(tabIds[i], {
+            windowId: newWindow.id,
+            index: -1
+          });
+        }
+      }
+      
+      // Clear selection
+      this.selectedTabs.clear();
+      this.showToast(`Moved ${tabIds.length} tab${tabIds.length !== 1 ? 's' : ''} to new window`, 'success');
+      
+    } catch (error) {
+      console.error('Failed to move tabs to new window:', error);
+      this.showToast('Failed to move tabs to new window', 'error');
+    }
+  }
+
+  findTabById(tabId) {
+    for (const window of this.windows) {
+      const tab = window.tabs.find(tab => tab.id === tabId);
+      if (tab) return tab;
+    }
+    return null;
+  }
+
   escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -532,7 +660,6 @@ class WindowManager {
   }
 }
 
-// Initialize manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  new WindowManager();
+  const windowManager = new WindowManager();
 });
