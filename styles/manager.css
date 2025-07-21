@@ -552,6 +552,72 @@ body {
   justify-content: center;
 }
 
+/* Compact view styles */
+.compact-view .window-card {
+  margin-bottom: 12px;
+}
+
+.compact-view .window-header {
+  padding: 8px 12px;
+}
+
+.compact-view .window-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.compact-view .window-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.compact-view .tabs-container {
+  padding: 8px;
+  max-height: 300px;
+}
+
+.compact-view .tab-item {
+  padding: 8px;
+  margin-bottom: 4px;
+  border-radius: 4px;
+}
+
+.compact-view .tab-favicon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+}
+
+.compact-view .tab-title {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.compact-view .tab-url {
+  font-size: 10px;
+}
+
+.compact-view .tab-btn {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
+
+.compact-view .tab-indicator {
+  width: 12px;
+  height: 12px;
+  font-size: 8px;
+}
+
+.compact-view .stats-bar {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.compact-view .windows-container {
+  gap: 12px;
+}
+
 /* Utility classes */
 .hidden {
   display: none !important;

@@ -5,6 +5,7 @@ class WindowManager {
     this.windows = [];
     this.dragData = null;
     this.viewMode = 'grid'; // 'grid' or 'list'
+    this.compactMode = false;
     
     this.initializeElements();
     this.setupEventListeners();
@@ -24,6 +25,7 @@ class WindowManager {
       windowCount: document.getElementById('windowCount'),
       tabCount: document.getElementById('tabCount'),
       viewModeBtn: document.getElementById('viewModeBtn'),
+      compactModeBtn: document.getElementById('compactModeBtn'),
       dropZone: document.getElementById('dropZone'),
       toast: document.getElementById('toast'),
       confirmModal: document.getElementById('confirmModal'),
@@ -38,6 +40,7 @@ class WindowManager {
     this.elements.refreshBtn.addEventListener('click', () => this.loadWindows());
     this.elements.newWindowBtn.addEventListener('click', () => this.createNewWindow());
     this.elements.viewModeBtn.addEventListener('click', () => this.toggleViewMode());
+    this.elements.compactModeBtn.addEventListener('click', () => this.toggleCompactMode());
 
     // Modal
     this.elements.modalCancel.addEventListener('click', () => this.hideModal());
@@ -389,8 +392,26 @@ class WindowManager {
       ${this.viewMode === 'grid' ? 'List View' : 'Grid View'}
     `;
     
-    // Update container class
-    this.elements.windowsContainer.className = `windows-container ${this.viewMode}-view`;
+    this.updateContainerClass();
+  }
+
+  toggleCompactMode() {
+    this.compactMode = !this.compactMode;
+    this.elements.compactModeBtn.innerHTML = `
+      <span class="icon">🗜️</span>
+      ${this.compactMode ? 'Normal' : 'Compact'}
+    `;
+    
+    this.updateContainerClass();
+  }
+
+  updateContainerClass() {
+    const classes = ['windows-container'];
+    classes.push(`${this.viewMode}-view`);
+    if (this.compactMode) {
+      classes.push('compact-view');
+    }
+    this.elements.windowsContainer.className = classes.join(' ');
   }
 
   getWindowTitle(window, index) {

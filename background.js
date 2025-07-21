@@ -3,6 +3,7 @@
 
 class WindowTabManager {
   constructor() {
+    this.updateTimer = null;
     this.setupMessageHandlers();
     this.setupTabListeners();
   }
@@ -34,7 +35,15 @@ class WindowTabManager {
     chrome.tabs.onCreated.addListener(() => this.notifyUIUpdate());
     chrome.tabs.onRemoved.addListener(() => this.notifyUIUpdate());
     chrome.tabs.onMoved.addListener(() => this.notifyUIUpdate());
-    chrome.tabs.onUpdated.addListener(() => this.notifyUIUpdate());
+    
+    // Only update on significant tab changes, not every update
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+      // Only notify if URL or title changed significantly
+      if (changeInfo.url || changeInfo.title) {
+        this.notifyUIUpdate();
+      }
+    });
+    
     chrome.windows.onCreated.addListener(() => this.notifyUIUpdate());
     chrome.windows.onRemoved.addListener(() => this.notifyUIUpdate());
   }
@@ -211,10 +220,17 @@ class WindowTabManager {
   }
 
   notifyUIUpdate() {
-    // Send update notification to any open popup/manager pages
-    chrome.runtime.sendMessage({ action: 'windowsUpdated' }).catch(() => {
-      // Ignore errors if no listeners (popup closed)
-    });
+    // Debounce updates to avoid rapid refreshes
+    if (this.updateTimer) {
+      clearTimeout(this.updateTimer);
+    }
+    
+    this.updateTimer = setTimeout(() => {
+      // Send update notification to any open popup/manager pages
+      chrome.runtime.sendMessage({ action: 'windowsUpdated' }).catch(() => {
+        // Ignore errors if no listeners (popup closed)
+      });
+    }, 300); // Wait 300ms before updating
   }
 }
 
