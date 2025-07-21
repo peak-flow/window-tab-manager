@@ -49,6 +49,9 @@ class WindowManager {
     chrome.runtime.onMessage.addListener((message) => {
       if (message.action === 'windowsUpdated') {
         this.loadWindows();
+      } else if (message.action === 'windowsUpdatedImmediate') {
+        // Handle immediate updates without full refresh
+        this.handleImmediateUpdate(message.eventType, message.data);
       }
     });
 
@@ -504,6 +507,22 @@ class WindowManager {
         }
       });
     });
+  }
+
+  handleImmediateUpdate(eventType, data) {
+    // Handle specific immediate updates without full refresh
+    switch (eventType) {
+      case 'tabMoved':
+        // For now, just do a full refresh but this could be optimized
+        // to move specific DOM elements
+        this.loadWindows();
+        break;
+      case 'tabAttached':
+      case 'tabDetached':
+        // Tab moved between windows - full refresh needed
+        this.loadWindows();
+        break;
+    }
   }
 
   escapeHtml(text) {

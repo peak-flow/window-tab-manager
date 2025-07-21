@@ -34,7 +34,20 @@ class WindowTabManager {
     // Listen for tab/window changes to update UI
     chrome.tabs.onCreated.addListener(() => this.notifyUIUpdate());
     chrome.tabs.onRemoved.addListener(() => this.notifyUIUpdate());
-    chrome.tabs.onMoved.addListener(() => this.notifyUIUpdate());
+    
+    // Tab moves should be instant - no debouncing
+    chrome.tabs.onMoved.addListener((tabId, moveInfo) => {
+      this.notifyUIUpdateImmediate('tabMoved', { tabId, moveInfo });
+    });
+    
+    // Tab attach/detach (moving between windows) should also be instant
+    chrome.tabs.onAttached.addListener((tabId, attachInfo) => {
+      this.notifyUIUpdateImmediate('tabAttached', { tabId, attachInfo });
+    });
+    
+    chrome.tabs.onDetached.addListener((tabId, detachInfo) => {
+      this.notifyUIUpdateImmediate('tabDetached', { tabId, detachInfo });
+    });
     
     // Only update on significant tab changes, not every update
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -231,6 +244,17 @@ class WindowTabManager {
         // Ignore errors if no listeners (popup closed)
       });
     }, 300); // Wait 300ms before updating
+  }
+
+  notifyUIUpdateImmediate(eventType, data) {
+    // Send immediate update for critical events like tab moves
+    chrome.runtime.sendMessage({ 
+      action: 'windowsUpdatedImmediate',
+      eventType,
+      data 
+    }).catch(() => {
+      // Ignore errors if no listeners (popup closed)
+    });
   }
 }
 

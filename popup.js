@@ -29,6 +29,9 @@ class PopupManager {
     chrome.runtime.onMessage.addListener((message) => {
       if (message.action === 'windowsUpdated') {
         this.loadWindows();
+      } else if (message.action === 'windowsUpdatedImmediate') {
+        // Handle immediate updates for moves/drags
+        this.loadWindows();
       }
     });
   }
