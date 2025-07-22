@@ -648,6 +648,74 @@
             ]
           },
           {
+            id: 'keyboard-shortcuts',
+            name: 'Keyboard Shortcuts',
+            description: 'Quick access to extension features via configurable keyboard shortcuts',
+            features: [
+              {
+                id: 'open-manager-shortcut',
+                icon: '⌨️',
+                title: 'Open Manager Shortcut',
+                description: 'Open the full tab and window manager directly with a keyboard shortcut',
+                function: 'openManagerPage()',
+                location: 'background.js:272',
+                steps: [
+                  'Press Ctrl+Shift+M (Windows/Linux) or Cmd+Shift+M (Mac)',
+                  'Manager page opens in new tab or focuses existing tab',
+                  'Customize shortcuts in chrome://extensions/shortcuts'
+                ],
+                code: `async openManagerPage() {
+  const tabs = await chrome.tabs.query({ 
+    url: chrome.runtime.getURL('manager.html') 
+  });
+  
+  if (tabs.length > 0) {
+    // Focus existing manager tab
+    await chrome.tabs.update(tabs[0].id, { active: true });
+    await chrome.windows.update(tabs[0].windowId, { focused: true });
+  } else {
+    // Create new manager tab
+    await chrome.tabs.create({
+      url: chrome.runtime.getURL('manager.html'),
+      active: true
+    });
+  }
+}`,
+                events: [
+                  'chrome.commands.onCommand',
+                  'command === "open-manager"'
+                ],
+                related: ['Manager Page', 'Chrome Extensions Settings']
+              },
+              {
+                id: 'popup-shortcut',
+                icon: '🎯',
+                title: 'Popup Shortcut',
+                description: 'Open the extension popup with a configurable keyboard shortcut',
+                function: 'Default Chrome Extension Action',
+                location: 'manifest.json:20',
+                steps: [
+                  'Set custom shortcut in chrome://extensions/shortcuts',
+                  'Look for "Activate the extension" option',
+                  'Press your configured key combination to open popup'
+                ],
+                code: `// Configured in manifest.json
+"action": {
+  "default_popup": "popup.html",
+  "default_title": "Window & Tab Manager"
+}
+
+// Shortcuts configured at:
+// chrome://extensions/shortcuts`,
+                events: [
+                  'Browser action keyboard shortcut',
+                  'Opens popup.html'
+                ],
+                related: ['Popup Interface', 'Chrome Extensions Settings']
+              }
+            ]
+          },
+          {
             id: 'real-time-updates',
             name: 'Real-time Updates',
             description: 'Automatic synchronization with browser state changes',
