@@ -60,7 +60,7 @@ class WindowManager {
     // Listen for background updates
     chrome.runtime.onMessage.addListener((message) => {
       if (message.action === 'windowsUpdated') {
-        this.loadWindows();
+        this.loadWindows(true); // Preserve scroll position
       } else if (message.action === 'windowsUpdatedImmediate') {
         // Handle immediate updates without full refresh
         this.handleImmediateUpdate(message.eventType, message.data);
@@ -89,9 +89,15 @@ class WindowManager {
     });
   }
 
-  async loadWindows() {
+  async loadWindows(preserveScrollPosition = false) {
     try {
-      this.showLoading();
+      // Save scroll position if requested
+      let scrollPosition = 0;
+      if (preserveScrollPosition) {
+        scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+      } else {
+        this.showLoading();
+      }
       
       const response = await this.sendMessage({ action: 'getAllWindows' });
       
@@ -103,6 +109,14 @@ class WindowManager {
       this.renderWindows();
       this.updateStats();
       this.showContent();
+      
+      // Restore scroll position if requested
+      if (preserveScrollPosition && scrollPosition > 0) {
+        // Use requestAnimationFrame to ensure DOM is updated
+        requestAnimationFrame(() => {
+          window.scrollTo(0, scrollPosition);
+        });
+      }
       
     } catch (error) {
       console.error('Failed to load windows:', error);
@@ -682,12 +696,12 @@ class WindowManager {
       case 'tabMoved':
         // For now, just do a full refresh but this could be optimized
         // to move specific DOM elements
-        this.loadWindows();
+        this.loadWindows(true); // Preserve scroll position
         break;
       case 'tabAttached':
       case 'tabDetached':
         // Tab moved between windows - full refresh needed
-        this.loadWindows();
+        this.loadWindows(true); // Preserve scroll position
         break;
     }
   }
