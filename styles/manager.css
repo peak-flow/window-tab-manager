@@ -661,6 +661,12 @@ body {
   border-bottom: none;
 }
 
+.domain-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .domain-name {
   font-size: 14px;
 }
@@ -669,6 +675,33 @@ body {
   font-size: 12px;
   color: #5f6368;
   font-weight: normal;
+}
+
+.domain-action-btn {
+  background: #1a73e8;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.domain-action-btn:hover {
+  background: #1557b0;
+  transform: scale(1.05);
+}
+
+.domain-action-btn:active {
+  transform: scale(0.95);
+}
+
+.domain-action-btn .icon {
+  font-size: 14px;
 }
 
 .domain-tabs {

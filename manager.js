@@ -201,11 +201,20 @@ class WindowManager {
     let html = '';
     sortedDomains.forEach(domain => {
       const domainTabs = groups[domain];
+      const tabIds = domainTabs.map(tab => tab.id).join(',');
       html += `
         <div class="domain-group">
           <div class="domain-header">
-            <span class="domain-name">${this.escapeHtml(domain)}</span>
-            <span class="domain-count">(${domainTabs.length})</span>
+            <div class="domain-info">
+              <span class="domain-name">${this.escapeHtml(domain)}</span>
+              <span class="domain-count">(${domainTabs.length})</span>
+            </div>
+            <button class="domain-action-btn move-domain-btn" 
+                    data-domain="${this.escapeHtml(domain)}" 
+                    data-tab-ids="${tabIds}"
+                    title="Move all ${this.escapeHtml(domain)} tabs to new window">
+              <span class="icon">🪟</span>
+            </button>
           </div>
           <div class="domain-tabs">
             ${domainTabs.map(tab => this.createTabHTML(tab)).join('')}
@@ -340,6 +349,17 @@ class WindowManager {
       checkbox.addEventListener('change', (e) => {
         e.stopPropagation();
         this.handleTabSelection(parseInt(checkbox.dataset.tabId), checkbox.checked);
+      });
+    });
+    
+    // Domain action button listeners
+    const domainActionBtns = windowElement.querySelectorAll('.move-domain-btn');
+    domainActionBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const domain = btn.dataset.domain;
+        const tabIds = btn.dataset.tabIds.split(',').map(id => parseInt(id));
+        this.moveDomainToNewWindow(domain, tabIds);
       });
     });
     
@@ -718,6 +738,35 @@ class WindowManager {
     } catch (error) {
       console.error('Failed to move tabs to new window:', error);
       this.showToast('Failed to move tabs to new window', 'error');
+    }
+  }
+
+  async moveDomainToNewWindow(domain, tabIds) {
+    if (tabIds.length === 0) return;
+    
+    try {
+      // Create new window with the first tab
+      const firstTabId = tabIds[0];
+      const newWindow = await chrome.windows.create({
+        tabId: firstTabId,
+        focused: true
+      });
+      
+      // Move remaining tabs to the new window
+      if (tabIds.length > 1) {
+        for (let i = 1; i < tabIds.length; i++) {
+          await chrome.tabs.move(tabIds[i], {
+            windowId: newWindow.id,
+            index: -1
+          });
+        }
+      }
+      
+      this.showToast(`Moved ${tabIds.length} ${domain} tab${tabIds.length !== 1 ? 's' : ''} to new window`, 'success');
+      
+    } catch (error) {
+      console.error('Failed to move domain tabs to new window:', error);
+      this.showToast(`Failed to move ${domain} tabs`, 'error');
     }
   }
 
