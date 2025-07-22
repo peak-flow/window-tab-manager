@@ -6,6 +6,7 @@ class WindowManager {
         this.dragData = null;
         this.viewMode = 'grid'; // 'grid' or 'list'
         this.compactMode = false;
+        this.groupByDomain = false; // Group tabs by domain
         this.selectedTabs = new Set(); // Track selected tab IDs
         
         this.initializeElements();
@@ -29,6 +30,7 @@ class WindowManager {
       compactModeBtn: document.getElementById('compactModeBtn'),
       sendToNewWindowBtn: document.getElementById('sendToNewWindowBtn'),
       searchBar: document.getElementById('search-bar'),
+      groupByDomainBtn: document.getElementById('groupByDomainBtn'),
       dropZone: document.getElementById('dropZone'),
       toast: document.getElementById('toast'),
       confirmModal: document.getElementById('confirmModal'),
@@ -44,6 +46,7 @@ class WindowManager {
     this.elements.newWindowBtn.addEventListener('click', () => this.createNewWindow());
     this.elements.viewModeBtn.addEventListener('click', () => this.toggleViewMode());
     this.elements.compactModeBtn.addEventListener('click', () => this.toggleCompactMode());
+    this.elements.groupByDomainBtn.addEventListener('click', () => this.toggleGroupByDomain());
     this.elements.sendToNewWindowBtn.addEventListener('click', () => this.sendSelectedToNewWindow());
     
     // Search bar
@@ -145,9 +148,17 @@ class WindowManager {
     windowDiv.dataset.windowId = window.id;
     
     const windowTitle = this.getWindowTitle(window, index);
-    const tabsHtml = window.tabs.length > 0 
-      ? window.tabs.map(tab => this.createTabHTML(tab)).join('') 
-      : '<div class="empty-tabs">No tabs</div>';
+    
+    let tabsContent;
+    if (window.tabs.length === 0) {
+      tabsContent = '<div class="empty-tabs">No tabs</div>';
+    } else if (this.groupByDomain) {
+      // Group tabs by domain
+      tabsContent = this.createGroupedTabsHTML(window.tabs);
+    } else {
+      // Normal tab display
+      tabsContent = window.tabs.map(tab => this.createTabHTML(tab)).join('');
+    }
     
     windowDiv.innerHTML = `
       <div class="window-header">
@@ -161,14 +172,66 @@ class WindowManager {
           </button>
         </div>
       </div>
-      <div class="tabs-container ${window.tabs.length === 0 ? 'empty' : ''}">
-        ${tabsHtml}
+      <div class="tabs-container ${window.tabs.length === 0 ? 'empty' : ''} ${this.groupByDomain ? 'grouped' : ''}">
+        ${tabsContent}
       </div>
     `;
     
     this.setupWindowEventListeners(windowDiv);
     
     return windowDiv;
+  }
+
+  createGroupedTabsHTML(tabs) {
+    // Group tabs by domain
+    const groups = {};
+    
+    tabs.forEach(tab => {
+      const domain = this.getDomainFromUrl(tab.url);
+      if (!groups[domain]) {
+        groups[domain] = [];
+      }
+      groups[domain].push(tab);
+    });
+    
+    // Sort domains alphabetically
+    const sortedDomains = Object.keys(groups).sort();
+    
+    // Create HTML for grouped tabs
+    let html = '';
+    sortedDomains.forEach(domain => {
+      const domainTabs = groups[domain];
+      html += `
+        <div class="domain-group">
+          <div class="domain-header">
+            <span class="domain-name">${this.escapeHtml(domain)}</span>
+            <span class="domain-count">(${domainTabs.length})</span>
+          </div>
+          <div class="domain-tabs">
+            ${domainTabs.map(tab => this.createTabHTML(tab)).join('')}
+          </div>
+        </div>
+      `;
+    });
+    
+    return html;
+  }
+
+  getDomainFromUrl(url) {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.hostname || 'Unknown';
+    } catch {
+      // Handle special Chrome URLs
+      if (url.startsWith('chrome://')) {
+        return 'Chrome Pages';
+      } else if (url.startsWith('chrome-extension://')) {
+        return 'Extensions';
+      } else if (url === 'about:blank' || !url) {
+        return 'Blank Pages';
+      }
+      return 'Unknown';
+    }
   }
 
   createTabHTML(tab) {
@@ -477,6 +540,19 @@ class WindowManager {
     `;
     
     this.updateContainerClass();
+  }
+
+  toggleGroupByDomain() {
+    this.groupByDomain = !this.groupByDomain;
+    this.elements.groupByDomainBtn.innerHTML = `
+      <span class="icon">🌐</span>
+      ${this.groupByDomain ? 'Ungroup' : 'Group by Domain'}
+    `;
+    
+    this.elements.groupByDomainBtn.classList.toggle('active');
+    
+    // Reload windows to apply grouping
+    this.loadWindows();
   }
 
   updateContainerClass() {

@@ -643,6 +643,65 @@ body {
   gap: 12px;
 }
 
+/* Domain grouping styles */
+.domain-group {
+  margin-bottom: 20px;
+}
+
+.domain-header {
+  background: #f1f3f4;
+  padding: 8px 12px;
+  border-radius: 6px 6px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #1a73e8;
+  border: 1px solid #e0e0e0;
+  border-bottom: none;
+}
+
+.domain-name {
+  font-size: 14px;
+}
+
+.domain-count {
+  font-size: 12px;
+  color: #5f6368;
+  font-weight: normal;
+}
+
+.domain-tabs {
+  border: 1px solid #e0e0e0;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  overflow: hidden;
+}
+
+.domain-tabs .tab-item {
+  border-radius: 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.domain-tabs .tab-item:last-child {
+  border-bottom: none;
+}
+
+.tabs-container.grouped {
+  padding: 8px;
+}
+
+.btn.active {
+  background: #1a73e8;
+  color: white;
+  border-color: #1a73e8;
+}
+
+.btn.active:hover {
+  background: #1557b0;
+}
+
 /* Utility classes */
 .hidden {
   display: none !important;
