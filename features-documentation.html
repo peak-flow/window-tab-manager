@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Window & Tab Manager - Feature Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    .code-highlight { background: #f8fafc; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1a73e8',
+            'primary-dark': '#1557b0',
+            'gray-text': '#5f6368'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-50 font-sans" x-data="featureDoc()">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+            <span class="text-white text-xl">🪟</span>
+          </div>
+          <div class="ml-4">
+            <h1 class="text-3xl font-bold text-gray-900">Window & Tab Manager</h1>
+            <p class="text-gray-text">Complete Feature Documentation</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-3">
+          <button @click="showCode = !showCode" 
+                  class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
+            <span x-text="showCode ? 'Hide Code' : 'Show Code'"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="bg-white border-b sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex space-x-8 overflow-x-auto py-4">
+        <template x-for="category in categories" :key="category.id">
+          <button @click="activeCategory = category.id"
+                  :class="activeCategory === category.id ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                  class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors">
+            <span x-text="category.name"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Category Content -->
+    <template x-for="category in categories" :key="category.id">
+      <div x-show="activeCategory === category.id" x-cloak>
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold text-gray-900 mb-2" x-text="category.name"></h2>
+          <p class="text-gray-text" x-text="category.description"></p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <template x-for="feature in category.features" :key="feature.id">
+            <div class="bg-white rounded-xl shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
+                 @click="selectedFeature = selectedFeature === feature.id ? null : feature.id">
+              <div class="p-6">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <div class="flex items-center mb-3">
+                      <span class="text-2xl mr-3" x-text="feature.icon"></span>
+                      <h3 class="text-lg font-semibold text-gray-900" x-text="feature.title"></h3>
+                    </div>
+                    <p class="text-gray-text text-sm mb-4" x-text="feature.description"></p>
+                    
+                    <!-- Function Reference -->
+                    <div class="bg-gray-50 rounded-lg p-3 mb-3">
+                      <div class="text-xs font-medium text-gray-500 mb-1">JavaScript Function</div>
+                      <code class="text-sm text-primary font-mono" x-text="feature.function"></code>
+                    </div>
+
+                    <!-- Location Reference -->
+                    <div class="text-xs text-gray-500">
+                      <span class="font-medium">File:</span> 
+                      <span x-text="feature.location"></span>
+                    </div>
+                  </div>
+                  
+                  <button class="ml-4 text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5 transform transition-transform" 
+                         :class="selectedFeature === feature.id ? 'rotate-180' : ''"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Expanded Content -->
+                <div x-show="selectedFeature === feature.id" 
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 transform scale-95"
+                     x-transition:enter-end="opacity-100 transform scale-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 transform scale-100"
+                     x-transition:leave-end="opacity-0 transform scale-95"
+                     class="mt-4 pt-4 border-t">
+                  
+                  <!-- Usage Instructions -->
+                  <div class="mb-4">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-2">How to Use:</h4>
+                    <ol class="text-sm text-gray-text space-y-1">
+                      <template x-for="step in feature.steps" :key="step">
+                        <li class="flex items-start">
+                          <span class="bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0"
+                                x-text="feature.steps.indexOf(step) + 1"></span>
+                          <span x-text="step"></span>
+                        </li>
+                      </template>
+                    </ol>
+                  </div>
+
+                  <!-- Code Example (if showCode is true) -->
+                  <div x-show="showCode" class="mb-4">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-2">Code Implementation:</h4>
+                    <pre class="bg-gray-900 text-green-400 text-xs p-3 rounded-lg overflow-x-auto"><code x-text="feature.code"></code></pre>
+                  </div>
+
+                  <!-- Related Features -->
+                  <div x-show="feature.related && feature.related.length > 0" class="mb-4">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-2">Related Features:</h4>
+                    <div class="flex flex-wrap gap-2">
+                      <template x-for="related in feature.related" :key="related">
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full" x-text="related"></span>
+                      </template>
+                    </div>
+                  </div>
+
+                  <!-- Event Listeners -->
+                  <div x-show="feature.events && feature.events.length > 0" class="mb-4">
+                    <h4 class="text-sm font-semibold text-gray-900 mb-2">Event Listeners:</h4>
+                    <ul class="text-xs text-gray-text space-y-1">
+                      <template x-for="event in feature.events" :key="event">
+                        <li class="bg-yellow-50 text-yellow-800 px-2 py-1 rounded">
+                          <code x-text="event"></code>
+                        </li>
+                      </template>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </template>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="text-center text-gray-500 text-sm">
+        <p>Window & Tab Manager - Built with security and performance in mind</p>
+        <p class="mt-2">JavaScript Functions Reference • Tailwind CSS • Alpine.js</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function featureDoc() {
+      return {
+        showCode: false,
+        activeCategory: 'window-management',
+        selectedFeature: null,
+        
+        categories: [
+          {
+            id: 'window-management',
+            name: 'Window Management',
+            description: 'Core window operations for focusing, closing, and creating browser windows',
+            features: [
+              {
+                id: 'focus-window',
+                icon: '👁️',
+                title: 'Focus Window',
+                description: 'Brings a specific browser window to the foreground and gives it focus',
+                function: 'focusWindow(windowId)',
+                location: 'manager.js:440',
+                steps: [
+                  'Click the "Focus" button in any window header',
+                  'The selected window will come to the foreground',
+                  'Window becomes active and receives keyboard input'
+                ],
+                code: `async focusWindow(windowId) {
+  try {
+    await this.sendMessage({ 
+      action: 'focusWindow', 
+      data: { windowId } 
+    });
+    this.showToast('Window focused', 'success');
+  } catch (error) {
+    this.showToast('Failed to focus window', 'error');
+  }
+}`,
+                events: [
+                  'click on .focus-window-btn',
+                  'chrome.windows.update(windowId, { focused: true })'
+                ],
+                related: ['Close Window', 'Create New Window']
+              },
+              {
+                id: 'close-window',
+                icon: '❌',
+                title: 'Close Window',
+                description: 'Closes an entire browser window and all its tabs with confirmation',
+                function: 'closeWindow(windowId)',
+                location: 'manager.js:452',
+                steps: [
+                  'Click the "Close" button in any window header',
+                  'Confirm the action in the modal dialog',
+                  'All tabs in the window will be closed'
+                ],
+                code: `async closeWindow(windowId) {
+  try {
+    await this.sendMessage({ 
+      action: 'closeWindow', 
+      data: { windowId } 
+    });
+    this.showToast('Window closed', 'success');
+  } catch (error) {
+    this.showToast('Failed to close window', 'error');
+  }
+}`,
+                events: [
+                  'click on .close-window-btn',
+                  'chrome.windows.remove(windowId)'
+                ],
+                related: ['Close Tab', 'Focus Window']
+              },
+              {
+                id: 'create-new-window',
+                icon: '➕',
+                title: 'Create New Window',
+                description: 'Opens a new browser window with a blank tab',
+                function: 'createNewWindow()',
+                location: 'manager.js:521',
+                steps: [
+                  'Click the "New Window" button in the header',
+                  'A new browser window opens with a blank tab',
+                  'The new window receives focus'
+                ],
+                code: `async createNewWindow() {
+  try {
+    await chrome.windows.create({
+      url: 'chrome://newtab/',
+      focused: true
+    });
+    this.showToast('New window created', 'success');
+  } catch (error) {
+    this.showToast('Failed to create new window', 'error');
+  }
+}`,
+                events: [
+                  'click on #newWindowBtn',
+                  'chrome.windows.create()'
+                ],
+                related: ['Focus Window', 'Send to New Window']
+              }
+            ]
+          },
+          {
+            id: 'tab-operations',
+            name: 'Tab Operations',
+            description: 'Individual tab management including focus, close, and movement operations',
+            features: [
+              {
+                id: 'focus-tab',
+                icon: '🎯',
+                title: 'Focus Tab',
+                description: 'Switches to a specific tab and brings its window to focus',
+                function: 'focusTab(tabId)',
+                location: 'manager.js:465',
+                steps: [
+                  'Click on any tab item (not on buttons)',
+                  'The tab becomes active in its window',
+                  'The window containing the tab gets focus'
+                ],
+                code: `async focusTab(tabId) {
+  try {
+    await this.sendMessage({ 
+      action: 'focusTab', 
+      data: { tabId } 
+    });
+    this.showToast('Tab focused', 'success');
+  } catch (error) {
+    this.showToast('Failed to focus tab', 'error');
+  }
+}`,
+                events: [
+                  'click on .tab-item',
+                  'chrome.tabs.update(tabId, { active: true })',
+                  'chrome.windows.update(windowId, { focused: true })'
+                ],
+                related: ['Close Tab', 'Move Tab']
+              },
+              {
+                id: 'close-tab',
+                icon: '✕',
+                title: 'Close Tab',
+                description: 'Closes a single tab while keeping the window open',
+                function: 'closeTab(tabId)',
+                location: 'manager.js:478',
+                steps: [
+                  'Click the "✕" button on any tab',
+                  'The tab closes immediately',
+                  'Other tabs in the window remain open'
+                ],
+                code: `async closeTab(tabId) {
+  try {
+    await this.sendMessage({ 
+      action: 'closeTab', 
+      data: { tabId } 
+    });
+    this.showToast('Tab closed', 'success');
+  } catch (error) {
+    this.showToast('Failed to close tab', 'error');
+  }
+}`,
+                events: [
+                  'click on .close-tab-btn',
+                  'chrome.tabs.remove(tabId)'
+                ],
+                related: ['Focus Tab', 'Close Window']
+              },
+              {
+                id: 'move-tab',
+                icon: '🔄',
+                title: 'Move Tab',
+                description: 'Moves a tab to a different window via drag and drop',
+                function: 'moveTabToWindow(tabId, targetWindowId)',
+                location: 'manager.js:491',
+                steps: [
+                  'Drag any tab item to start moving',
+                  'Drop it on a different window or the drop zone',
+                  'Tab moves to the target window'
+                ],
+                code: `async moveTabToWindow(tabId, targetWindowId) {
+  try {
+    await this.sendMessage({ 
+      action: 'moveTab', 
+      data: { tabId, windowId: targetWindowId } 
+    });
+    this.showToast('Tab moved', 'success');
+  } catch (error) {
+    this.showToast('Failed to move tab', 'error');
+  }
+}`,
+                events: [
+                  'dragstart on .tab-item',
+                  'drop on .tabs-container',
+                  'chrome.tabs.move()'
+                ],
+                related: ['Drag and Drop', 'Send to New Window']
+              }
+            ]
+          },
+          {
+            id: 'bulk-operations',
+            name: 'Bulk Operations',
+            description: 'Multi-tab selection and batch operations for efficient tab management',
+            features: [
+              {
+                id: 'tab-selection',
+                icon: '☑️',
+                title: 'Tab Selection',
+                description: 'Select multiple tabs using checkboxes for batch operations',
+                function: 'handleTabSelection(tabId, isChecked)',
+                location: 'manager.js:676',
+                steps: [
+                  'Check the checkbox next to any tab',
+                  'Multiple tabs can be selected',
+                  'Send to New Window button appears when tabs are selected'
+                ],
+                code: `handleTabSelection(tabId, isChecked) {
+  if (isChecked) {
+    this.selectedTabs.add(tabId);
+  } else {
+    this.selectedTabs.delete(tabId);
+  }
+  
+  // Show/hide the send to new window button
+  this.elements.sendToNewWindowBtn.style.display = 
+    this.selectedTabs.size > 0 ? 'inline-flex' : 'none';
+}`,
+                events: [
+                  'change on .tab-checkbox',
+                  'Set operations on this.selectedTabs'
+                ],
+                related: ['Send to New Window', 'Domain Group Action']
+              },
+              {
+                id: 'send-to-new-window',
+                icon: '📤',
+                title: 'Send to New Window',
+                description: 'Move all selected tabs to a new dedicated window',
+                function: 'sendSelectedToNewWindow()',
+                location: 'manager.js:708',
+                steps: [
+                  'Select one or more tabs using checkboxes',
+                  'Click the "Send to New Window" button',
+                  'All selected tabs move to a new window'
+                ],
+                code: `async sendSelectedToNewWindow() {
+  const tabIds = Array.from(this.selectedTabs);
+  const firstTabId = tabIds[0];
+  
+  const newWindow = await chrome.windows.create({
+    tabId: firstTabId,
+    focused: true
+  });
+  
+  // Move remaining tabs
+  for (let i = 1; i < tabIds.length; i++) {
+    await chrome.tabs.move(tabIds[i], {
+      windowId: newWindow.id,
+      index: -1
+    });
+  }
+}`,
+                events: [
+                  'click on #sendToNewWindowBtn',
+                  'chrome.windows.create()',
+                  'chrome.tabs.move()'
+                ],
+                related: ['Tab Selection', 'Domain Group Action']
+              },
+              {
+                id: 'domain-group-action',
+                icon: '🪟',
+                title: 'Domain Group Action',
+                description: 'Move all tabs from a specific domain to their own window',
+                function: 'moveDomainToNewWindow(domain, tabIds)',
+                location: 'manager.js:744',
+                steps: [
+                  'Enable "Group by Domain" view mode',
+                  'Click the 🪟 button next to any domain header',
+                  'All tabs from that domain move to a new window'
+                ],
+                code: `async moveDomainToNewWindow(domain, tabIds) {
+  const firstTabId = tabIds[0];
+  const newWindow = await chrome.windows.create({
+    tabId: firstTabId,
+    focused: true
+  });
+  
+  // Move remaining tabs from the domain
+  if (tabIds.length > 1) {
+    for (let i = 1; i < tabIds.length; i++) {
+      await chrome.tabs.move(tabIds[i], {
+        windowId: newWindow.id,
+        index: -1
+      });
+    }
+  }
+}`,
+                events: [
+                  'click on .move-domain-btn',
+                  'chrome.windows.create()',
+                  'chrome.tabs.move()'
+                ],
+                related: ['Group by Domain', 'Send to New Window']
+              }
+            ]
+          },
+          {
+            id: 'view-modes',
+            name: 'View Modes',
+            description: 'Different ways to organize and display tabs and windows',
+            features: [
+              {
+                id: 'group-by-domain',
+                icon: '🌐',
+                title: 'Group by Domain',
+                description: 'Organize tabs within each window by their base domain/website',
+                function: 'toggleGroupByDomain()',
+                location: 'manager.js:545',
+                steps: [
+                  'Click the "Group by Domain" button',
+                  'Tabs reorganize into domain groups',
+                  'Each domain shows tab count and action buttons'
+                ],
+                code: `toggleGroupByDomain() {
+  this.groupByDomain = !this.groupByDomain;
+  this.elements.groupByDomainBtn.innerHTML = \`
+    <span class="icon">🌐</span>
+    \${this.groupByDomain ? 'Ungroup' : 'Group by Domain'}
+  \`;
+  
+  this.elements.groupByDomainBtn.classList.toggle('active');
+  this.loadWindows(); // Reload to apply grouping
+}`,
+                events: [
+                  'click on #groupByDomainBtn',
+                  'this.createGroupedTabsHTML()'
+                ],
+                related: ['Domain Group Action', 'Compact Mode']
+              },
+              {
+                id: 'compact-mode',
+                icon: '🗜️',
+                title: 'Compact Mode',
+                description: 'Reduces spacing and tab heights for viewing more tabs at once',
+                function: 'toggleCompactMode()',
+                location: 'manager.js:535',
+                steps: [
+                  'Click the "Compact" button',
+                  'Tab heights reduce and spacing tightens',
+                  'More tabs become visible on screen'
+                ],
+                code: `toggleCompactMode() {
+  this.compactMode = !this.compactMode;
+  this.elements.compactModeBtn.innerHTML = \`
+    <span class="icon">🗜️</span>
+    \${this.compactMode ? 'Normal' : 'Compact'}
+  \`;
+  
+  this.updateContainerClass();
+}`,
+                events: [
+                  'click on #compactModeBtn',
+                  'CSS class toggle on container'
+                ],
+                related: ['Group by Domain', 'Grid View']
+              },
+              {
+                id: 'search-filter',
+                icon: '🔍',
+                title: 'Search & Filter',
+                description: 'Search through all tabs by URL to quickly find specific pages',
+                function: 'filterTabs()',
+                location: 'manager.js:800',
+                steps: [
+                  'Type in the search bar at the top',
+                  'Tabs filter in real-time as you type',
+                  'Only matching tabs remain visible'
+                ],
+                code: `filterTabs() {
+  const query = this.elements.searchBar.value.toLowerCase();
+  
+  document.querySelectorAll('.tab-item').forEach(tab => {
+    const url = tab.querySelector('.tab-url').textContent.toLowerCase();
+    const title = tab.querySelector('.tab-title').textContent.toLowerCase();
+    
+    if (url.includes(query) || title.includes(query)) {
+      tab.style.display = '';
+    } else {
+      tab.style.display = 'none';
+    }
+  });
+}`,
+                events: [
+                  'input on #search-bar',
+                  'DOM manipulation for visibility'
+                ],
+                related: ['Group by Domain', 'Tab Selection']
+              }
+            ]
+          },
+          {
+            id: 'drag-drop',
+            name: 'Drag & Drop',
+            description: 'Visual drag and drop system for moving tabs between windows',
+            features: [
+              {
+                id: 'drag-start',
+                icon: '👆',
+                title: 'Drag Start',
+                description: 'Initiates drag operation when user starts dragging a tab',
+                function: 'setupTabEventListeners() - dragstart',
+                location: 'manager.js:429',
+                steps: [
+                  'Click and hold on any tab',
+                  'Start dragging to initiate the operation',
+                  'Visual feedback shows dragging state'
+                ],
+                code: `tabItem.addEventListener('dragstart', (e) => {
+  this.dragData = { 
+    tabId: parseInt(tabItem.dataset.tabId), 
+    windowId: parseInt(tabItem.dataset.windowId) 
+  };
+  
+  tabItem.classList.add('dragging');
+  this.elements.dropZone.classList.remove('hidden');
+  
+  e.dataTransfer.effectAllowed = 'move';
+});`,
+                events: [
+                  'dragstart on .tab-item',
+                  'Visual state changes'
+                ],
+                related: ['Drop Zone', 'Move Tab']
+              },
+              {
+                id: 'drop-zone',
+                icon: '📁',
+                title: 'Drop Zone',
+                description: 'Special area that appears during drag to create new windows',
+                function: 'handleDropToNewWindow()',
+                location: 'manager.js:504',
+                steps: [
+                  'Start dragging any tab',
+                  'Drop zone appears in bottom-right',
+                  'Drop tab on zone to create new window'
+                ],
+                code: `async handleDropToNewWindow() {
+  if (!this.dragData) return;
+  
+  try {
+    const newWindow = await chrome.windows.create({
+      tabId: this.dragData.tabId,
+      focused: true
+    });
+    
+    this.showToast('New window created', 'success');
+  } catch (error) {
+    this.showToast('Failed to create new window', 'error');
+  }
+}`,
+                events: [
+                  'drop on #dropZone',
+                  'chrome.windows.create()'
+                ],
+                related: ['Drag Start', 'Create New Window']
+              }
+            ]
+          },
+          {
+            id: 'real-time-updates',
+            name: 'Real-time Updates',
+            description: 'Automatic synchronization with browser state changes',
+            features: [
+              {
+                id: 'background-listeners',
+                icon: '🔄',
+                title: 'Background Listeners',
+                description: 'Service worker monitors all tab and window changes in the browser',
+                function: 'setupTabListeners()',
+                location: 'background.js:32',
+                steps: [
+                  'Automatic - no user action required',
+                  'Detects when tabs/windows are created, moved, or closed',
+                  'Sends update notifications to open manager pages'
+                ],
+                code: `setupTabListeners() {
+  chrome.tabs.onCreated.addListener(() => this.notifyUIUpdate());
+  chrome.tabs.onRemoved.addListener(() => this.notifyUIUpdate());
+  chrome.tabs.onMoved.addListener(() => this.notifyUIUpdate());
+  chrome.tabs.onUpdated.addListener(() => this.notifyUIUpdate());
+  chrome.windows.onCreated.addListener(() => this.notifyUIUpdate());
+  chrome.windows.onRemoved.addListener(() => this.notifyUIUpdate());
+}`,
+                events: [
+                  'chrome.tabs.onCreated',
+                  'chrome.tabs.onRemoved',
+                  'chrome.tabs.onMoved',
+                  'chrome.windows.onCreated'
+                ],
+                related: ['UI Updates', 'Load Windows']
+              },
+              {
+                id: 'ui-updates',
+                icon: '🔃',
+                title: 'UI Updates',
+                description: 'Manager interface automatically refreshes when browser state changes',
+                function: 'loadWindows()',
+                location: 'manager.js:91',
+                steps: [
+                  'Automatic - triggered by browser changes',
+                  'Manager interface refreshes to show current state',
+                  'No manual refresh needed'
+                ],
+                code: `// Listen for background updates
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.action === 'windowsUpdated') {
+    this.loadWindows(); // Reload all windows
+  }
+});
+
+async loadWindows() {
+  const response = await this.sendMessage({ action: 'getAllWindows' });
+  this.windows = response.windows || [];
+  this.renderWindows();
+  this.updateStats();
+}`,
+                events: [
+                  'chrome.runtime.onMessage',
+                  'message.action === "windowsUpdated"'
+                ],
+                related: ['Background Listeners', 'Render Windows']
+              }
+            ]
+          }
+        ]
+      }
+    }
+  </script>
+</body>
+</html>
