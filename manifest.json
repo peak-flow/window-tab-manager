@@ -37,6 +37,16 @@
     "128": "assets/icons/icon128.png"
   },
   
+  "commands": {
+    "open-manager": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+M",
+        "mac": "Command+Shift+M"
+      },
+      "description": "Open full tab and window manager"
+    }
+  },
+  
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

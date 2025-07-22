@@ -6,6 +6,7 @@ class WindowTabManager {
     this.updateTimer = null;
     this.setupMessageHandlers();
     this.setupTabListeners();
+    this.setupCommandHandlers();
   }
 
   setupMessageHandlers() {
@@ -59,6 +60,17 @@ class WindowTabManager {
     
     chrome.windows.onCreated.addListener(() => this.notifyUIUpdate());
     chrome.windows.onRemoved.addListener(() => this.notifyUIUpdate());
+  }
+
+  setupCommandHandlers() {
+    // Handle keyboard shortcuts
+    chrome.commands.onCommand.addListener((command) => {
+      switch (command) {
+        case 'open-manager':
+          this.openManagerPage();
+          break;
+      }
+    });
   }
 
   isValidMessage(message) {
@@ -255,6 +267,28 @@ class WindowTabManager {
     }).catch(() => {
       // Ignore errors if no listeners (popup closed)
     });
+  }
+
+  async openManagerPage() {
+    try {
+      // Check if manager page is already open
+      const tabs = await chrome.tabs.query({ url: chrome.runtime.getURL('manager.html') });
+      
+      if (tabs.length > 0) {
+        // Manager page is already open, focus it
+        const tab = tabs[0];
+        await chrome.tabs.update(tab.id, { active: true });
+        await chrome.windows.update(tab.windowId, { focused: true });
+      } else {
+        // Open new manager page
+        await chrome.tabs.create({
+          url: chrome.runtime.getURL('manager.html'),
+          active: true
+        });
+      }
+    } catch (error) {
+      console.error('Failed to open manager page:', error);
+    }
   }
 }
 
