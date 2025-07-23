@@ -5,7 +5,7 @@ class WindowManager {
         this.windows = [];
         this.dragData = null;
         this.viewMode = 'grid'; // 'grid' or 'list'
-        this.compactMode = false;
+        this.compactMode = 'normal'; // 'normal', 'compact', 'ultra'
         this.groupByDomain = false; // Group tabs by domain
         this.selectedTabs = new Set(); // Track selected tab IDs
         
@@ -567,10 +567,34 @@ class WindowManager {
   }
 
   toggleCompactMode() {
-    this.compactMode = !this.compactMode;
+    // Cycle through three modes: normal → compact → ultra → normal
+    switch (this.compactMode) {
+      case 'normal':
+        this.compactMode = 'compact';
+        break;
+      case 'compact':
+        this.compactMode = 'ultra';
+        break;
+      case 'ultra':
+        this.compactMode = 'normal';
+        break;
+    }
+    
+    const modeLabels = {
+      'normal': 'Compact',
+      'compact': 'Ultra',
+      'ultra': 'Normal'
+    };
+    
+    const modeIcons = {
+      'normal': '🗜️',
+      'compact': '🗜️🗜️',
+      'ultra': '🗜️'
+    };
+    
     this.elements.compactModeBtn.innerHTML = `
-      <span class="icon">🗜️</span>
-      ${this.compactMode ? 'Normal' : 'Compact'}
+      <span class="icon">${modeIcons[this.compactMode]}</span>
+      ${modeLabels[this.compactMode]}
     `;
     
     this.updateContainerClass();
@@ -592,9 +616,14 @@ class WindowManager {
   updateContainerClass() {
     const classes = ['windows-container'];
     classes.push(`${this.viewMode}-view`);
-    if (this.compactMode) {
+    
+    // Add compact mode classes
+    if (this.compactMode === 'compact') {
       classes.push('compact-view');
+    } else if (this.compactMode === 'ultra') {
+      classes.push('compact-view', 'ultra-compact-view');
     }
+    
     this.elements.windowsContainer.className = classes.join(' ');
   }
 
