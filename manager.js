@@ -28,6 +28,9 @@ class WindowManager {
       tabCount: document.getElementById('tabCount'),
       viewModeBtn: document.getElementById('viewModeBtn'),
       compactModeBtn: document.getElementById('compactModeBtn'),
+      normalSizeBtn: document.getElementById('normalSizeBtn'),
+      compactSizeBtn: document.getElementById('compactSizeBtn'),
+      ultraSizeBtn: document.getElementById('ultraSizeBtn'),
       sendToNewWindowBtn: document.getElementById('sendToNewWindowBtn'),
       searchBar: document.getElementById('search-bar'),
       groupByDomainBtn: document.getElementById('groupByDomainBtn'),
@@ -44,10 +47,19 @@ class WindowManager {
     this.elements.retryBtn.addEventListener('click', () => this.loadWindows());
     this.elements.refreshBtn.addEventListener('click', () => this.loadWindows());
     this.elements.newWindowBtn.addEventListener('click', () => this.createNewWindow());
-    this.elements.viewModeBtn.addEventListener('click', () => this.toggleViewMode());
-    this.elements.compactModeBtn.addEventListener('click', () => this.toggleCompactMode());
+    if (this.elements.viewModeBtn) {
+      this.elements.viewModeBtn.addEventListener('click', () => this.toggleViewMode());
+    }
+    if (this.elements.compactModeBtn) {
+      this.elements.compactModeBtn.addEventListener('click', () => this.toggleCompactMode());
+    }
     this.elements.groupByDomainBtn.addEventListener('click', () => this.toggleGroupByDomain());
     this.elements.sendToNewWindowBtn.addEventListener('click', () => this.sendSelectedToNewWindow());
+    
+    // Size button listeners
+    this.elements.normalSizeBtn.addEventListener('click', () => this.setViewSize('normal'));
+    this.elements.compactSizeBtn.addEventListener('click', () => this.setViewSize('compact'));
+    this.elements.ultraSizeBtn.addEventListener('click', () => this.setViewSize('ultra'));
     
     // Search bar
     if (this.elements.searchBar) {
@@ -566,38 +578,43 @@ class WindowManager {
     this.updateContainerClass();
   }
 
-  toggleCompactMode() {
-    // Cycle through three modes: normal → compact → ultra → normal
-    switch (this.compactMode) {
+  setViewSize(size) {
+    this.compactMode = size;
+    
+    // Update active button states
+    document.querySelectorAll('.size-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    
+    switch(size) {
       case 'normal':
-        this.compactMode = 'compact';
+        this.elements.normalSizeBtn.classList.add('active');
         break;
       case 'compact':
-        this.compactMode = 'ultra';
+        this.elements.compactSizeBtn.classList.add('active');
         break;
       case 'ultra':
-        this.compactMode = 'normal';
+        this.elements.ultraSizeBtn.classList.add('active');
         break;
     }
     
-    const modeLabels = {
-      'normal': 'Compact',
-      'compact': 'Ultra',
-      'ultra': 'Normal'
-    };
-    
-    const modeIcons = {
-      'normal': '🗜️',
-      'compact': '🗜️🗜️',
-      'ultra': '🗜️'
-    };
-    
-    this.elements.compactModeBtn.innerHTML = `
-      <span class="icon">${modeIcons[this.compactMode]}</span>
-      ${modeLabels[this.compactMode]}
-    `;
-    
     this.updateContainerClass();
+  }
+
+  toggleCompactMode() {
+    // Keep for backwards compatibility if needed
+    // Cycle through three modes: normal → compact → ultra → normal
+    switch (this.compactMode) {
+      case 'normal':
+        this.setViewSize('compact');
+        break;
+      case 'compact':
+        this.setViewSize('ultra');
+        break;
+      case 'ultra':
+        this.setViewSize('normal');
+        break;
+    }
   }
 
   toggleGroupByDomain() {
